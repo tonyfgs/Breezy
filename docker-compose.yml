@@ -1,0 +1,64 @@
+services:
+  front:
+    build:
+      context: ./front
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    depends_on:
+      - api-gateway
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - IAM_URL=http://iam:4001
+      - USERS_URL=http://users:4002
+      - POSTS_URL=http://posts:4003
+      - NOTIFICATIONS_URL=http://notifications:4004
+    depends_on:
+      - iam
+      - users
+      - posts
+      - notifications
+
+  iam:
+    build:
+      context: ./microservices/iam
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=4001
+      - NODE_ENV=production
+
+  users:
+    build:
+      context: ./microservices/users
+    ports:
+      - "4002:4002"
+    environment:
+      - PORT=4002
+      - NODE_ENV=production
+
+  posts:
+    build:
+      context: ./microservices/posts
+    ports:
+      - "4003:4003"
+    environment:
+      - PORT=4003
+      - NODE_ENV=production
+
+  notifications:
+    build:
+      context: ./microservices/notifications
+    ports:
+      - "4004:4004"
+    environment:
+      - PORT=4004
+      - NODE_ENV=production

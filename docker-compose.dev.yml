@@ -1,0 +1,87 @@
+services:
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=development
+      - IAM_URL=http://iam:4001
+      - USERS_URL=http://users:4002
+      - POSTS_URL=http://posts:4003
+      - NOTIFICATIONS_URL=http://notifications:4004
+    depends_on:
+      - iam
+      - users
+      - posts
+      - notifications
+
+  iam:
+    build:
+      context: ./microservices/iam
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/iam:/app
+      - /app/node_modules
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=4001
+      - NODE_ENV=development
+
+  users:
+    build:
+      context: ./microservices/users
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/users:/app
+      - /app/node_modules
+    ports:
+      - "4002:4002"
+    environment:
+      - PORT=4002
+      - NODE_ENV=development
+
+  posts:
+    build:
+      context: ./microservices/posts
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/posts:/app
+      - /app/node_modules
+    ports:
+      - "4003:4003"
+    environment:
+      - PORT=4003
+      - NODE_ENV=development
+
+  notifications:
+    build:
+      context: ./microservices/notifications
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/notifications:/app
+      - /app/node_modules
+    ports:
+      - "4004:4004"
+    environment:
+      - PORT=4004
+      - NODE_ENV=development

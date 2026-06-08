@@ -1,0 +1,14 @@
+{
+  "name": "breezy",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose -f docker-compose.dev.yml up",
+    "dev:build": "docker compose -f docker-compose.dev.yml up --build",
+    "dev:local": "pnpm -r --parallel run dev",
+    "down": "docker compose -f docker-compose.dev.yml down",
+    "test": "pnpm -r run test",
+    "test:coverage": "pnpm -r run test:coverage",
+    "lint": "pnpm -r run lint",
+    "lint:fix": "pnpm -r run lint:fix"
+  }
+}

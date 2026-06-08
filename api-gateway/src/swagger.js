@@ -1,14 +1,10 @@
-const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
-const swaggerUiOptions = {
-  swaggerOptions: {
-    urls: [
-      { url: 'http://localhost:4001/api-docs/swagger.json', name: 'IAM' },
-      { url: 'http://localhost:4002/api-docs/swagger.json', name: 'Users' },
-      { url: 'http://localhost:4003/api-docs/swagger.json', name: 'Posts' },
-      { url: 'http://localhost:4004/api-docs/swagger.json', name: 'Notifications' },
-    ],
+module.exports = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'API Gateway', version: '1.0.0', description: 'Breezy API Gateway' },
+    servers: [{ url: `http://localhost:${process.env.PORT || 4000}` }],
   },
-};
-
-module.exports = { swaggerUi, swaggerUiOptions };
+  apis: ['./src/app.js'],
+});

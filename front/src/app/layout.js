@@ -1,6 +1,8 @@
+import "./globals.css";
+
 export const metadata = {
-  title: 'Breezy',
-  description: 'Réseau social',
+  title: "Breezy",
+  description: "Réseau social",
 };
 
 export default function RootLayout({ children }) {

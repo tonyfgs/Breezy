@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { AlignJustify, AtSign, Lock } from 'lucide-react';
+import Image from 'next/image';
+import { AtSign, Lock } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
@@ -31,9 +32,13 @@ export default function LoginPage() {
     <div className="auth-desktop-wrapper">
       <div className="auth-brand-panel">
         <div className="auth-brand-panel__logo">
-          <div className="auth-brand-panel__logo-icon">
-            <AlignJustify size={16} />
-          </div>
+          <Image
+            src="/breezy_logo-white_bg.png"
+            alt="Breezy"
+            width={36}
+            height={36}
+            className="auth-brand-panel__logo-icon"
+          />
           Breezy
         </div>
         <p className="auth-brand-panel__tagline">Les vraies conversations n'ont pas de buzz</p>
@@ -45,6 +50,17 @@ export default function LoginPage() {
 
       <div className="auth-page-wrapper">
         <div className="auth-page">
+          <div className="auth-mobile-header">
+            <Image
+              src="/breezy_logo-white_bg.png"
+              alt="Breezy"
+              width={36}
+              height={36}
+              className="auth-mobile-header__logo"
+            />
+            Breezy
+          </div>
+
           <div className="auth-content">
             <h1 className="auth-title">Content de te revoir.</h1>
             <p className="auth-subtitle">Reprends la conversation là où tu l'avais laissée.</p>
@@ -60,16 +76,19 @@ export default function LoginPage() {
                 iconLeft={<AtSign size={16} />}
               />
 
-              <Input
-                label="Mot de passe"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange('password')}
-                iconLeft={<Lock size={16} />}
-                error={error}
-              />
+              <div className="auth-field-group">
+                <Input
+                  label="Mot de passe"
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={handleChange('password')}
+                  iconLeft={<Lock size={16} />}
+                  error={error}
+                />
+                <Link href="/forgot-password" className="auth-forgot-link">Mot de passe oublié ?</Link>
+              </div>
 
               <Button type="submit" fullWidth>Se connecter</Button>
             </form>

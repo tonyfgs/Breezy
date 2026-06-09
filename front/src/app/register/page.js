@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { AlignJustify, ChevronLeft, AtSign, Mail, Lock, Check } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronLeft, AtSign, Mail, Lock, Check } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
@@ -76,9 +77,13 @@ export default function RegisterPage() {
     <div className="auth-desktop-wrapper">
       <div className="auth-brand-panel">
         <div className="auth-brand-panel__logo">
-          <div className="auth-brand-panel__logo-icon">
-            <AlignJustify size={16} />
-          </div>
+          <Image
+            src="/breezy_logo-white_bg.png"
+            alt="Breezy"
+            width={36}
+            height={36}
+            className="auth-brand-panel__logo-icon"
+          />
           Breezy
         </div>
         <p className="auth-brand-panel__tagline">Les vraies conversations n'ont pas de buzz</p>
@@ -90,6 +95,17 @@ export default function RegisterPage() {
 
       <div className="auth-page-wrapper">
         <div className="auth-page">
+          <div className="auth-mobile-header">
+            <Image
+              src="/breezy_logo-white_bg.png"
+              alt="Breezy"
+              width={36}
+              height={36}
+              className="auth-mobile-header__logo"
+            />
+            Breezy
+          </div>
+
           <Link href="/login" className="auth-back-btn" aria-label="Retour">
             <ChevronLeft size={22} />
           </Link>
@@ -153,14 +169,19 @@ export default function RegisterPage() {
               </Input>
 
               <Button type="submit" fullWidth>Créer mon compte</Button>
+
+              <p className="auth-legal">
+                En continuant, tu acceptes les{' '}
+                <Link href="/legal/terms"><strong>Conditions</strong></Link>{' '}
+                et la{' '}
+                <Link href="/legal/privacy"><strong>Politique de confidentialité</strong></Link>{' '}
+                de Breezy.
+              </p>
             </form>
 
-            <p className="auth-legal">
-              En continuant, tu acceptes les{' '}
-              <Link href="/legal/terms"><strong>Conditions</strong></Link>{' '}
-              et la{' '}
-              <Link href="/legal/privacy"><strong>Politique de confidentialité</strong></Link>{' '}
-              de Breezy.
+            <p className="auth-switch">
+              Déjà un compte ?{' '}
+              <Link href="/login">Connecte-toi.</Link>
             </p>
           </div>
         </div>

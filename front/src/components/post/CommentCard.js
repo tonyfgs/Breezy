@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Flag } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
+import ReportModal from '../modals/ReportModal';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -16,6 +17,7 @@ export default function CommentCard({ comment }) {
   const [liked, setLiked] = useState(comment.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(comment.nb_likesCount ?? 0);
   const [showReplyModal, setShowReplyModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   function handleLike() {
     setLikeCount(prev => liked ? prev - 1 : prev + 1);
@@ -31,6 +33,13 @@ export default function CommentCard({ comment }) {
             <span className="comment-card__name">@{comment.author.nm_username}</span>
             <span className="comment-card__subline">{formatRelativeTime(comment.ts_createdAt)}</span>
           </div>
+          <button
+            className="comment-card__flag-btn"
+            onClick={() => setShowReportModal(true)}
+            aria-label="Signaler"
+          >
+            <Flag size={13} />
+          </button>
         </div>
 
         <p className="comment-card__body">{comment.txt_content}</p>
@@ -51,7 +60,7 @@ export default function CommentCard({ comment }) {
             aria-label="Répondre"
           >
             <MessageCircle size={14} />
-            {comment.nb_commentsCount > 0 && <span>{comment.nb_commentsCount}</span>}
+            <span>Répondre</span>
           </button>
         </div>
 
@@ -66,6 +75,9 @@ export default function CommentCard({ comment }) {
 
       {showReplyModal && (
         <CommentModal post={comment} onClose={() => setShowReplyModal(false)} />
+      )}
+      {showReportModal && (
+        <ReportModal targetId={comment.sk_id} targetType="comment" onClose={() => setShowReportModal(false)} />
       )}
     </>
   );

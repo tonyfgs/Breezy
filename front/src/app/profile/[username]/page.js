@@ -12,16 +12,18 @@ const MOCK_PROFILES = {
   camille: {
     sk_id: 'user_001',
     nm_username: 'camille',
-    txt_bio: 'Développeuse front-end · café · photos de balcon.',
+    nm_displayName: 'Camille Roche',
+    txt_bio: 'Café avant les e-mails. Je collectionne les petites lumières du matin et les bonnes adresses de quartier.',
     url_avatar: null,
     fl_active: true,
     nb_postsCount: 42,
-    nb_followersCount: 128,
-    nb_followingCount: 64,
+    nb_followersCount: 1208,
+    nb_followingCount: 342,
   },
   theom: {
     sk_id: 'user_002',
     nm_username: 'theom',
+    nm_displayName: 'Théo Mercier',
     txt_bio: 'Designer UI/UX basé à Lyon.',
     url_avatar: null,
     fl_active: true,
@@ -32,6 +34,7 @@ const MOCK_PROFILES = {
   'ines.b': {
     sk_id: 'user_003',
     nm_username: 'ines.b',
+    nm_displayName: 'Inès Baptiste',
     txt_bio: 'Photographe amateur · nature.',
     url_avatar: null,
     fl_active: true,
@@ -42,6 +45,7 @@ const MOCK_PROFILES = {
   maxg: {
     sk_id: 'user_004',
     nm_username: 'maxg',
+    nm_displayName: 'Max G.',
     txt_bio: '',
     url_avatar: null,
     fl_active: true,
@@ -52,6 +56,7 @@ const MOCK_PROFILES = {
   'atelier.lum': {
     sk_id: 'user_005',
     nm_username: 'atelier.lum',
+    nm_displayName: 'Atelier Lumière',
     txt_bio: 'Lumière · Photo · Atelier créatif.',
     url_avatar: null,
     fl_active: true,
@@ -62,6 +67,7 @@ const MOCK_PROFILES = {
   noev: {
     sk_id: 'user_006',
     nm_username: 'noev',
+    nm_displayName: 'Noé Vidal',
     txt_bio: 'Curiosité et cafés.',
     url_avatar: null,
     fl_active: true,
@@ -72,6 +78,7 @@ const MOCK_PROFILES = {
   salome: {
     sk_id: 'user_007',
     nm_username: 'salome',
+    nm_displayName: 'Salomé',
     txt_bio: '',
     url_avatar: null,
     fl_active: true,
@@ -185,36 +192,35 @@ export default function ProfilePage({ params }) {
       <div className="profile-hero">
         <div className="profile-hero__top">
           <Avatar name={profile.nm_username} size="lg" />
-          <div className="profile-hero__stats">
-            <div className="profile-hero__stat">
-              <span className="profile-hero__stat-value">{profile.nb_postsCount}</span>
-              <span className="profile-hero__stat-label">Posts</span>
-            </div>
-            <div className="profile-hero__stat">
-              <span className="profile-hero__stat-value">{profile.nb_followersCount}</span>
-              <span className="profile-hero__stat-label">Abonnés</span>
-            </div>
-            <div className="profile-hero__stat">
-              <span className="profile-hero__stat-value">{profile.nb_followingCount}</span>
-              <span className="profile-hero__stat-label">Abonnements</span>
-            </div>
-          </div>
+          {isOwnProfile ? (
+            <button className="profile-hero__btn profile-hero__btn--edit" onClick={() => router.push('/settings')}>Modifier le profil</button>
+          ) : (
+            <button
+              className={`profile-hero__btn${following ? ' profile-hero__btn--following' : ''}`}
+              onClick={() => setFollowing(prev => !prev)}
+            >
+              {following ? 'Abonné' : "S'abonner"}
+            </button>
+          )}
+        </div>
+
+        <div className="profile-hero__identity">
+          <span className="profile-hero__name">{profile.nm_displayName ?? profile.nm_username}</span>
+          <span className="profile-hero__handle">@{profile.nm_username}</span>
         </div>
 
         {profile.txt_bio && (
           <p className="profile-hero__bio">{profile.txt_bio}</p>
         )}
 
-        {isOwnProfile ? (
-          <button className="profile-hero__btn profile-hero__btn--edit" onClick={() => router.push('/settings')}>Modifier le profil</button>
-        ) : (
-          <button
-            className={`profile-hero__btn${following ? ' profile-hero__btn--following' : ''}`}
-            onClick={() => setFollowing(prev => !prev)}
-          >
-            {following ? 'Abonné' : "S'abonner"}
-          </button>
-        )}
+        <div className="profile-hero__stats">
+          <span className="profile-hero__stat">
+            <strong>{profile.nb_followingCount.toLocaleString('fr-FR')}</strong> abonnements
+          </span>
+          <span className="profile-hero__stat">
+            <strong>{profile.nb_followersCount.toLocaleString('fr-FR')}</strong> abonnés
+          </span>
+        </div>
       </div>
 
       <div className="feed-list">

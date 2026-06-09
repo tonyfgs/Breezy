@@ -29,7 +29,7 @@ export default function RightSidebar() {
           {suggestions.map(user => (
             <li key={user.sk_id} className="suggestion-row">
               <Link href={`/profile/${user.nm_username}`} className="suggestion-row__user">
-                <Avatar name={user.displayName} size="sm" />
+                <Avatar name={user.nm_username} size="sm" />
                 <div className="suggestion-row__info">
                   <span className="suggestion-row__name">{user.displayName}</span>
                   <span className="suggestion-row__handle">@{user.nm_username}</span>

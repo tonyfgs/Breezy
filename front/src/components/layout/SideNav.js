@@ -75,7 +75,7 @@ export default function SideNav() {
         </button>
 
         <Link href="/profile/me" className="side-nav__user">
-          <Avatar name={MOCK_CURRENT_USER.displayName} size="sm" />
+          <Avatar name={MOCK_CURRENT_USER.nm_username} size="sm" />
           <div className="side-nav__user-info">
             <span className="side-nav__user-name">{MOCK_CURRENT_USER.displayName}</span>
             <span className="side-nav__user-handle">@{MOCK_CURRENT_USER.nm_username}</span>

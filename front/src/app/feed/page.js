@@ -1,5 +1,6 @@
 import AppLayout from '../../components/layout/AppLayout';
 import PostCard from '../../components/post/PostCard';
+import FeedCompose from '../../components/post/FeedCompose';
 
 // TODO: API - GET /api/posts/feed
 // Structure basée sur les modèles Post + User (profiles) + likes
@@ -110,6 +111,9 @@ export default function FeedPage() {
       <header className="feed-header">
         <h1 className="feed-header__title">Accueil</h1>
       </header>
+      <div className="feed-compose-wrapper">
+        <FeedCompose />
+      </div>
       <div className="feed-list">
         {MOCK_FEED.map(post => (
           <PostCard key={post.sk_id} post={post} />

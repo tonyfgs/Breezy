@@ -36,12 +36,17 @@ export default function PostCard({ post }) {
     <>
       <article className="post-card" onClick={() => router.push(`/post/${post.sk_id}`)}>
         <div className="post-card__header">
-          {/* url_avatar sera utilisé ici quand disponible */}
-          <Avatar name={post.author.nm_username} size="md" />
-          <div className="post-card__meta">
-            <span className="post-card__name">@{post.author.nm_username}</span>
-            <span className="post-card__subline">{formatRelativeTime(post.ts_createdAt)}</span>
-          </div>
+          <button
+            className="post-card__author"
+            onClick={e => { e.stopPropagation(); router.push(`/profile/${post.author.nm_username}`); }}
+            aria-label={`Voir le profil de @${post.author.nm_username}`}
+          >
+            <Avatar name={post.author.nm_username} size="md" />
+            <div className="post-card__meta">
+              <span className="post-card__name">@{post.author.nm_username}</span>
+              <span className="post-card__subline">{formatRelativeTime(post.ts_createdAt)}</span>
+            </div>
+          </button>
           <button className="post-card__flag-btn" aria-label="Signaler" onClick={e => { e.stopPropagation(); setShowReportModal(true); }}>
             <Flag size={14} />
           </button>

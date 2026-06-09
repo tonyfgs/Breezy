@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Flag } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
+import ReportModal from '../modals/ReportModal';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -16,6 +17,7 @@ export default function PostCard({ post }) {
   const [liked, setLiked] = useState(post.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(post.nb_likesCount ?? 0);
   const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   function handleLike(e) {
     e.stopPropagation();
@@ -38,8 +40,8 @@ export default function PostCard({ post }) {
             <span className="post-card__name">@{post.author.nm_username}</span>
             <span className="post-card__subline">{formatRelativeTime(post.ts_createdAt)}</span>
           </div>
-          <button className="post-card__menu-btn" aria-label="Options" onClick={e => e.stopPropagation()}>
-            <MoreHorizontal size={16} />
+          <button className="post-card__flag-btn" aria-label="Signaler" onClick={e => { e.stopPropagation(); setShowReportModal(true); }}>
+            <Flag size={14} />
           </button>
         </div>
 
@@ -64,6 +66,9 @@ export default function PostCard({ post }) {
 
       {showCommentModal && (
         <CommentModal post={post} onClose={() => setShowCommentModal(false)} />
+      )}
+      {showReportModal && (
+        <ReportModal postId={post.sk_id} onClose={() => setShowReportModal(false)} />
       )}
     </>
   );

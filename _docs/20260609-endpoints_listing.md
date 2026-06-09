@@ -7,6 +7,9 @@ POST   /auth/refresh         -- renouvellement du JWT
 
 
 User endpoints
+GET    /users/me             -- profil de l'utilisateur connecté (résolu via JWT)
+GET    /users/search?q=      -- recherche d'utilisateurs par nm_username
+GET    /users/check-handle?handle=  -- vérifie la disponibilité d'un identifiant (register)
 GET    /users/:id            -- profil public d'un utilisateur
 PATCH  /users/:id            -- modifier son profil (bio, avatar)
 DELETE /users/:id            -- supprimer son compte
@@ -18,18 +21,21 @@ DELETE /users/:id/follow     -- ne plus suivre
 
 
 Post endpoints
+-- Feed
+GET    /posts/feed           -- feed personnalisé de l'utilisateur connecté (posts des abonnements)
+
 -- Posts
 POST   /posts                -- créer un post
-GET    /posts/:id            -- récupérer un post
+GET    /posts/:id            -- récupérer un post (inclut fl_liked calculé selon l'utilisateur connecté)
 PATCH  /posts/:id            -- modifier un post
 DELETE /posts/:id            -- supprimer un post
 GET    /users/:id/posts      -- tous les posts d'un utilisateur
 
 -- Commentaires
-GET    /posts/:id/comments         -- récupérer les commentaires d'un post
-POST   /posts/:id/comments         -- commenter un post
-GET    /posts/:id/comments/:cid    -- récupérer un commentaire
-DELETE /posts/:id/comments/:cid    -- supprimer un commentaire
+GET    /posts/:id/comments?depth=3  -- arbre de commentaires imbriqués (défaut depth=3)
+POST   /posts/:id/comments          -- commenter un post
+GET    /posts/:id/comments/:cid     -- récupérer un commentaire
+DELETE /posts/:id/comments/:cid     -- supprimer un commentaire
 
 -- Likes
 POST   /posts/:id/likes      -- liker un post

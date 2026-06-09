@@ -16,7 +16,6 @@ User
       txt_bio: String,
       url_avatar: String,
       fl_active: Boolean
-      nb_sanctionsCount: Integer
       ts_createdAt: Date,
       ts_updatedAt: Date
 }

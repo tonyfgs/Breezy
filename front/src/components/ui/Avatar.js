@@ -1,6 +1,6 @@
 const COLORS = ['#a8ce85', '#7bc9c9', '#c9a87c', '#c97bab', '#7b9fc9', '#c9c97b'];
 
-function getColor(name) {
+export function getColor(name) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);

@@ -13,6 +13,7 @@
   --color-text-secondary: #919191;
 
   --color-border: rgba(45, 45, 45, 0.8);
+  --color-border-subtle: #f3f3f3;
   --color-shadow: rgba(45, 45, 45, 0.05);
 
   --color-success-text: #5E8C44;
@@ -618,6 +619,26 @@ img {
   animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+.modal--compose {
+  min-height: 60dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal--compose form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal--compose .modal__compose {
+  flex: 1;
+}
+
+.modal--compose .modal__textarea {
+  min-height: 160px;
+}
+
 .modal__header {
   display: flex;
   align-items: center;
@@ -678,4 +699,33 @@ img {
 .modal__actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.modal__compose {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.modal__compose .modal__textarea {
+  flex: 1;
+}
+
+.modal__compose-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: var(--space-3);
+}
+
+.modal__char-count {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.modal__char-count--over {
+  color: var(--color-error-text);
+  font-weight: var(--font-semibold);
 }

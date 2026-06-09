@@ -75,7 +75,7 @@ export default function PostCard({ post }) {
         <CommentModal post={post} onClose={() => setShowCommentModal(false)} />
       )}
       {showReportModal && (
-        <ReportModal postId={post.sk_id} onClose={() => setShowReportModal(false)} />
+        <ReportModal targetId={post.sk_id} targetType="post" onClose={() => setShowReportModal(false)} />
       )}
     </>
   );

@@ -13,7 +13,7 @@ const REPORT_REASONS = [
   { cd: 'other', label: 'Autre' },
 ];
 
-export default function ReportModal({ postId, onClose }) {
+export default function ReportModal({ targetId, targetType = 'post', onClose }) {
   const [selectedReason, setSelectedReason] = useState(null);
 
   function handleSubmit(e) {
@@ -21,8 +21,8 @@ export default function ReportModal({ postId, onClose }) {
     if (!selectedReason) return;
 
     // TODO: API - POST /api/reports {
-    //   sk_targetId: postId,
-    //   cd_targetType: 'post',
+    //   sk_targetId: targetId,
+    //   cd_targetType: targetType,
     //   txt_reason: selectedReason,
     // }
     onClose();
@@ -36,7 +36,7 @@ export default function ReportModal({ postId, onClose }) {
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal">
         <div className="modal__header">
-          <h2 className="modal__title">Signaler ce post</h2>
+          <h2 className="modal__title">{targetType === 'comment' ? 'Signaler ce commentaire' : 'Signaler ce post'}</h2>
           <button className="modal__close-btn" onClick={onClose} aria-label="Fermer">
             <X size={20} />
           </button>

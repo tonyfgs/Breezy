@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import Avatar from '../../components/ui/Avatar';
 
@@ -32,6 +32,9 @@ export default function SettingsPage() {
   return (
     <AppLayout>
       <header className="page-header">
+        <button className="post-detail__back-btn" onClick={() => router.back()} aria-label="Retour">
+          <ChevronLeft size={22} />
+        </button>
         <h1 className="page-header__title">Paramètres</h1>
       </header>
 

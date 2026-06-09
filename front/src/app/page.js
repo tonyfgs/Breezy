@@ -1,7 +1,6 @@
+import { redirect } from 'next/navigation';
+
 export default function HomePage() {
-  return (
-    <main>
-      <h1>Breezy</h1>
-    </main>
-  );
+  // TODO: rediriger vers /login si non authentifié (AuthContext)
+  redirect('/feed');
 }

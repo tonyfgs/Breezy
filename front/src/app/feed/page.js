@@ -108,7 +108,7 @@ export default function FeedPage() {
   return (
     <AppLayout>
       <header className="feed-header">
-        <h1 className="feed-header__title">Breezy</h1>
+        <h1 className="feed-header__title">Accueil</h1>
       </header>
       <div className="feed-list">
         {MOCK_FEED.map(post => (

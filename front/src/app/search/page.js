@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppLayout from '../../components/layout/AppLayout';
 import SearchBar from '../../components/ui/SearchBar';
 import UserRow from '../../components/user/UserRow';
@@ -15,7 +16,8 @@ const MOCK_USERS = [
 ];
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
 
   const trimmed = query.trim();
   const results = trimmed

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, AtSign, Mail, Lock, Check } from 'lucide-react';
+import { AlignJustify, ChevronLeft, AtSign, Mail, Lock, Check } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
@@ -73,79 +73,97 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-page">
-      <Link href="/login" className="auth-back-btn" aria-label="Retour">
-        <ChevronLeft size={22} />
-      </Link>
+    <div className="auth-desktop-wrapper">
+      <div className="auth-brand-panel">
+        <div className="auth-brand-panel__logo">
+          <div className="auth-brand-panel__logo-icon">
+            <AlignJustify size={16} />
+          </div>
+          Breezy
+        </div>
+        <p className="auth-brand-panel__tagline">Les vraies conversations n'ont pas de buzz</p>
+        <div className="auth-brand-panel__bubbles">
+          <div className="auth-bubble auth-bubble--incoming">j'ai amené les croissants ce matin !</div>
+          <div className="auth-bubble auth-bubble--outgoing">je suis déjà en route</div>
+        </div>
+      </div>
 
-      <div className="auth-content">
-        <h1 className="auth-title">Rejoins Breezy.</h1>
-        <p className="auth-subtitle">Une place douce pour partager tes pensées du jour.</p>
+      <div className="auth-page-wrapper">
+        <div className="auth-page">
+          <Link href="/login" className="auth-back-btn" aria-label="Retour">
+            <ChevronLeft size={22} />
+          </Link>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <Input
-            label="Nom"
-            type="text"
-            name="name"
-            placeholder="Ton nom complet"
-            value={form.name}
-            onChange={handleChange('name')}
-            error={errors.name}
-          />
+          <div className="auth-content">
+            <h1 className="auth-title">Rejoins Breezy.</h1>
+            <p className="auth-subtitle">Une place douce pour partager tes pensées du jour.</p>
 
-          <Input
-            label="Identifiant"
-            type="text"
-            name="handle"
-            placeholder="ton_identifiant"
-            value={form.handle}
-            onChange={handleChange('handle')}
-            iconLeft={<AtSign size={16} />}
-            iconRight={handleAvailable ? <Check size={16} /> : null}
-            success={handleAvailable ? 'Identifiant disponible' : ''}
-            error={errors.handle}
-          />
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <Input
+                label="Nom"
+                type="text"
+                name="name"
+                placeholder="Ton nom complet"
+                value={form.name}
+                onChange={handleChange('name')}
+                error={errors.name}
+              />
 
-          <Input
-            label="Adresse e-mail"
-            type="email"
-            name="email"
-            placeholder="adresse@email.com"
-            value={form.email}
-            onChange={handleChange('email')}
-            iconLeft={<Mail size={16} />}
-            error={errors.email}
-          />
+              <Input
+                label="Identifiant"
+                type="text"
+                name="handle"
+                placeholder="ton_identifiant"
+                value={form.handle}
+                onChange={handleChange('handle')}
+                iconLeft={<AtSign size={16} />}
+                iconRight={handleAvailable ? <Check size={16} /> : null}
+                success={handleAvailable ? 'Identifiant disponible' : ''}
+                error={errors.handle}
+              />
 
-          <Input
-            label="Mot de passe"
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={handleChange('password')}
-            iconLeft={<Lock size={16} />}
-            error={errors.password}
-          >
-            {form.password && (
-              <div className="password-rules">
-                <span className={`password-rule${passwordRules.hasLength ? ' password-rule--met' : ''}`}>8 caractères</span>
-                <span className={`password-rule${passwordRules.hasDigit ? ' password-rule--met' : ''}`}>1 chiffre</span>
-                <span className={`password-rule${passwordRules.hasUpper ? ' password-rule--met' : ''}`}>1 majuscule</span>
-              </div>
-            )}
-          </Input>
+              <Input
+                label="Adresse e-mail"
+                type="email"
+                name="email"
+                placeholder="adresse@email.com"
+                value={form.email}
+                onChange={handleChange('email')}
+                iconLeft={<Mail size={16} />}
+                error={errors.email}
+              />
 
-          <Button type="submit" fullWidth>Créer mon compte</Button>
-        </form>
+              <Input
+                label="Mot de passe"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange('password')}
+                iconLeft={<Lock size={16} />}
+                error={errors.password}
+              >
+                {form.password && (
+                  <div className="password-rules">
+                    <span className={`password-rule${passwordRules.hasLength ? ' password-rule--met' : ''}`}>8 caractères</span>
+                    <span className={`password-rule${passwordRules.hasDigit ? ' password-rule--met' : ''}`}>1 chiffre</span>
+                    <span className={`password-rule${passwordRules.hasUpper ? ' password-rule--met' : ''}`}>1 majuscule</span>
+                  </div>
+                )}
+              </Input>
 
-        <p className="auth-legal">
-          En continuant, tu acceptes les{' '}
-          <Link href="/legal/terms"><strong>Conditions</strong></Link>{' '}
-          et la{' '}
-          <Link href="/legal/privacy"><strong>Politique de confidentialité</strong></Link>{' '}
-          de Breezy.
-        </p>
+              <Button type="submit" fullWidth>Créer mon compte</Button>
+            </form>
+
+            <p className="auth-legal">
+              En continuant, tu acceptes les{' '}
+              <Link href="/legal/terms"><strong>Conditions</strong></Link>{' '}
+              et la{' '}
+              <Link href="/legal/privacy"><strong>Politique de confidentialité</strong></Link>{' '}
+              de Breezy.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Heart, MessageCircle, Flag } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
@@ -14,6 +15,7 @@ function formatRelativeTime(isoString) {
 }
 
 export default function PostCard({ post }) {
+  const router = useRouter();
   const [liked, setLiked] = useState(post.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(post.nb_likesCount ?? 0);
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -32,7 +34,7 @@ export default function PostCard({ post }) {
 
   return (
     <>
-      <article className="post-card">
+      <article className="post-card" onClick={() => router.push(`/post/${post.sk_id}`)}>
         <div className="post-card__header">
           {/* url_avatar sera utilisé ici quand disponible */}
           <Avatar name={post.author.nm_username} size="md" />

@@ -4,12 +4,17 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import Button from '../ui/Button';
 
+const MAX_CHARS = 280;
+
 export default function CommentModal({ post, onClose }) {
   const [content, setContent] = useState('');
 
+  const remaining = MAX_CHARS - content.length;
+  const isOverLimit = remaining < 0;
+
   function handleSubmit(e) {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || isOverLimit) return;
 
     // TODO: API - POST /api/posts { txt_content: content, sk_parentPostId: post.sk_id }
     onClose();
@@ -42,7 +47,12 @@ export default function CommentModal({ post, onClose }) {
             autoFocus
           />
           <div className="modal__actions">
-            <Button type="submit" disabled={!content.trim()}>
+            {content && (
+              <span className={`modal__char-count${isOverLimit ? ' modal__char-count--over' : ''}`}>
+                {remaining}
+              </span>
+            )}
+            <Button type="submit" disabled={!content.trim() || isOverLimit}>
               Répondre
             </Button>
           </div>

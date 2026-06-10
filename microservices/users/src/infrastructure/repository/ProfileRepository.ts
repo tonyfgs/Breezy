@@ -7,6 +7,11 @@ import {ProfileModel} from "../models/ProfileModel";
 export class ProfileRepository implements IProfileRepository{
 
 
+    async getAllProfiles(): Promise<Profile[]> {
+        const results = await ProfileModel.find();
+        return results.map(ProfileMapper.toDomain);
+    }
+
     async getProfile(id: string): Promise<Profile> {
         const result = await ProfileModel.findById(id);
         if (!result) throw new Error(`Profile not found: ${id}`);

@@ -5,6 +5,7 @@ import { GetProfileUseCase } from './application/usecases/GetProfileUseCase';
 import { CreateProfileUseCase } from './application/usecases/CreateProfileUseCase';
 import { DeleteProfileUseCase } from './application/usecases/DeleteProfileUseCase';
 import { UpdateProfileUseCase } from './application/usecases/UpdateProfileUseCase';
+import { GetAllProfilesUseCase } from './application/usecases/GetAllProfilesUseCase';
 import { ProfileController } from './interfaces/controllers/ProfileController';
 import 'dotenv/config';
 import {IController} from "./interfaces/controllers/IController";
@@ -21,7 +22,8 @@ const profileController = new ProfileController(
     new GetProfileUseCase(profileRepository),
     new CreateProfileUseCase(profileRepository),
     new DeleteProfileUseCase(profileRepository),
-    new UpdateProfileUseCase(profileRepository)
+    new UpdateProfileUseCase(profileRepository),
+    new GetAllProfilesUseCase(profileRepository)
 );
 
 controllerTable.push(profileController);

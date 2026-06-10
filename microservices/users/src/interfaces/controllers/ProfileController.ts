@@ -9,8 +9,8 @@ import {ProfileDTO} from "../../application/dto/ProfileDTO";
 
 export class ProfileController implements IController{
 
-    public path: string= '/users/';
-    public router = Router();
+    public readonly path: string= '/users/';
+    public readonly router = Router();
 
     private createProfileUseCase: CreateProfileUseCase;
     private deleteProfileUseCase: DeleteProfileUseCase;

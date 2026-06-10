@@ -1,19 +1,34 @@
 import {IProfileRepository} from "../../domain/repositories/IProfileRepository";
 import {Profiler} from "node:inspector";
 import {Profile} from "../../domain/entities/Profile";
+import {ProfileMapper} from "../mapper/profileMapper";
+import {ProfileModel} from "../models/ProfileModel";
 
 export class ProfileRepository implements IProfileRepository{
-    createProfile(profile: Profile): Promise<Profile> {
-        throw new Error('Not implemented');
+
+
+    async getProfile(id: string): Promise<Profile> {
+        const result = await ProfileModel.findById(id);
+        if (!result) throw new Error(`Profile not found: ${id}`);
+        return ProfileMapper.toDomain(result);
+    }
+
+    async getByUsername(username: string): Promise<Profile | null> {
+        const result = await ProfileModel.findOne({ username: username });
+        if (!result) return null;
+        return ProfileMapper.toDomain(result);
+    }
+
+    async createProfile(profile: Profile): Promise<Profile> {
+        const result = await ProfileModel.create(profile);
+        if (!result) throw new Error('Profile not created');
+        return ProfileMapper.toDomain(result);
     }
 
     deleteProfile(id: string): Promise<void> {
         throw new Error('Not implemented');
     }
 
-    getProfile(id: string): Promise<Profile> {
-        throw new Error('Not implemented');
-    }
 
     patchProfile(id: string, profile: Profile): Promise<Profile> {
         throw new Error('Not implemented');

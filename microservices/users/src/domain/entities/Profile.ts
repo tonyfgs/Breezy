@@ -1,12 +1,12 @@
 export class Profile {
-    id: string;
+    id?: string;
     username: string;
     bio: string;
     avatar: string;
     createdAt: Date;
     updatedAt: Date;
 
-    constructor(id: string, username: string, bio: string, avatar: string) {
+    constructor(username: string, bio: string, avatar: string,id?: string) {
         this.id = id;
         this.username = username;
         this.bio = bio;
@@ -14,5 +14,6 @@ export class Profile {
         this.createdAt = new Date();
         this.updatedAt = new Date();
     }
+
 
 }

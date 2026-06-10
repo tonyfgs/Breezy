@@ -1,7 +1,7 @@
 // src/infrastructure/models/ProfileModel.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface IProfileDocument extends Document {
+export interface IProfileDocument extends Document {
     username: string;
     bio: string;
     avatar: string;

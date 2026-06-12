@@ -18,6 +18,7 @@ export class UserController implements IController {
     }
 
     private initialiseRoutes() {
+        this.router.get('/health', (_req, res) => res.status(200).json({ service: 'auth', status: 'up' }));
         this.router.post('/login', this.login.bind(this));
         this.router.post('/register', this.register.bind(this));
         this.router.get('/validate', this.validate.bind(this));

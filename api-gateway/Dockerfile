@@ -1,10 +1,2 @@
-FROM node:20-alpine
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
-WORKDIR /app
-COPY package.json ./
-RUN pnpm install --prod
-COPY . .
-EXPOSE 4000
-CMD ["node", "src/index.js"]
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/nginx.conf

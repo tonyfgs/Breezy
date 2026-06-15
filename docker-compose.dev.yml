@@ -79,6 +79,16 @@ services:
     environment:
       - PORT=4002
       - NODE_ENV=development
+      - MONGODB_URI=mongodb://users-db:27017/breezy-users
+    depends_on:
+      - users-db
+
+  users-db:
+    image: mongo:7
+    ports:
+      - "27018:27017"
+    volumes:
+      - users_data:/data/db
 
   posts:
     build:
@@ -92,6 +102,17 @@ services:
     environment:
       - PORT=4003
       - NODE_ENV=development
+      - MONGODB_URI=mongodb://posts-db:27017/breezy-posts
+    depends_on:
+      - posts-db
+
+  posts-db:
+    image: mongo:7
+    command: mongod --quiet --setParameter logLevel=0
+    ports:
+      - "27019:27017"
+    volumes:
+      - posts_data:/data/db
 
   notifications:
     build:
@@ -108,3 +129,5 @@ services:
 
 volumes:
   iam_data:
+  posts_data:
+  users_data:

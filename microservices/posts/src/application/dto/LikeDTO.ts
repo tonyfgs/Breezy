@@ -7,6 +7,14 @@ export interface LikeDTO {
     createdAt: Date;
 }
 
+export interface PaginatedLikesDTO {
+    data: LikeDTO[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 export function toLikeDTO(like: Like): LikeDTO {
     return {
         id: like.id!,

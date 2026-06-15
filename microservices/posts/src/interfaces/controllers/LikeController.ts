@@ -23,8 +23,10 @@ export class LikeController implements IController {
     }
 
     private async getLikes(req: any, res: any): Promise<void> {
-        const likes = await this.getLikesByPostUseCase.execute(req.params.postId);
-        res.status(200).json(likes);
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const result = await this.getLikesByPostUseCase.execute(req.params.postId, page, limit);
+        res.status(200).json(result);
     }
 
     private async likePost(req: any, res: any): Promise<void> {

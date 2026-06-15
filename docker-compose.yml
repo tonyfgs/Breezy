@@ -13,14 +13,7 @@ services:
     build:
       context: ./api-gateway
     ports:
-      - "4000:4000"
-    environment:
-      - PORT=4000
-      - NODE_ENV=production
-      - IAM_URL=http://iam:4001
-      - USERS_URL=http://users:4002
-      - POSTS_URL=http://posts:4003
-      - NOTIFICATIONS_URL=http://notifications:4004
+      - "4000:80"
     depends_on:
       - iam
       - users

@@ -17,22 +17,24 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile.dev
     volumes:
-      - ./api-gateway:/app
-      - /app/node_modules
+      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "4000:4000"
-    environment:
-      - PORT=4000
-      - NODE_ENV=development
-      - IAM_URL=http://iam:4001
-      - USERS_URL=http://users:4002
-      - POSTS_URL=http://posts:4003
-      - NOTIFICATIONS_URL=http://notifications:4004
+      - "4000:80"
     depends_on:
       - iam
-      - users
-      - posts
-      - notifications
+      - test-private
+
+  test-private:
+    build:
+      context: ./microservices/test-private
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/test-private:/app
+      - /app/node_modules
+    ports:
+      - "4005:3000"
+    environment:
+      - PORT=3000
 
   iam:
     build:
@@ -46,6 +48,24 @@ services:
     environment:
       - PORT=4001
       - NODE_ENV=development
+      - DB_HOST=iam-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=iam_db
+      - JWT_SECRET=secret
+      - JWT_EXPIRES_IN=1h
+    depends_on:
+      - iam-db
+
+  iam-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: iam_db
+    volumes:
+      - iam_data:/var/lib/postgresql/data
 
   users:
     build:
@@ -85,3 +105,6 @@ services:
     environment:
       - PORT=4004
       - NODE_ENV=development
+
+volumes:
+  iam_data:

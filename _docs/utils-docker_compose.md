@@ -1,6 +1,6 @@
 # Docker Compose — Commandes utiles
 
-> Dernière mise à jour : 2026-06-12
+> Dernière mise à jour : 2026-06-15
 
 ---
 
@@ -10,7 +10,20 @@
 |---------|-------|
 | `docker-compose.yml` | Stack complète en production |
 | `docker-compose.dev.yml` | Stack complète en développement |
-| `microservices/iam/docker-compose.yml` | PostgreSQL IAM seul (dev local) |
+| `microservices/iam/docker-compose.yml` | PostgreSQL IAM seul (dev local sans compose global) |
+| `microservices/users/docker-compose.yaml` | MongoDB Users seul (dev local sans compose global) |
+| `microservices/posts/docker-compose.yaml` | MongoDB Posts seul (dev local sans compose global) |
+
+## Services et bases de données
+
+| Service | Port | Base de données | Service DB | Port DB (host) |
+|---------|------|-----------------|------------|----------------|
+| `api-gateway` | 4000 | — | — | — |
+| `iam` | 4001 | PostgreSQL | `iam-db` | 5433 |
+| `users` | 4002 | MongoDB | `users-db` | 27018 |
+| `posts` | 4003 | MongoDB | `posts-db` | 27017 |
+| `notifications` | 4004 | — | — | — |
+| `test-private` | 4005 | — | — | — |
 
 ---
 
@@ -38,10 +51,16 @@ docker compose -f docker-compose.dev.yml up --build
 ## Services ciblés
 
 ```bash
-# Démarrer uniquement NGINX + IAM + sa base
+# NGINX + IAM + sa base
 docker compose -f docker-compose.dev.yml up api-gateway iam iam-db
 
-# Démarrer uniquement le service IAM et sa base
+# NGINX + IAM + Posts + leurs bases + test-private
+docker compose -f docker-compose.dev.yml up -d api-gateway iam iam-db posts posts-db test-private
+
+# Uniquement le service Posts et sa base
+docker compose -f docker-compose.dev.yml up posts posts-db
+
+# Uniquement le service IAM et sa base
 docker compose -f docker-compose.dev.yml up iam iam-db
 ```
 
@@ -69,21 +88,6 @@ docker compose -f docker-compose.dev.yml logs -f iam
 
 # Logs NGINX
 docker compose -f docker-compose.dev.yml logs -f api-gateway
-```
-
----
-
-## Accès direct à la base IAM
-
-```bash
-# Connexion psql via le container
-docker exec -it iam-postgres-1 psql -U postgres -d iam_db
-
-# Lister les tables
-\dt
-
-# Quitter
-\q
 ```
 
 ---

@@ -14,8 +14,9 @@ Port par défaut : `4003` (env `PORT`)
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
 | `GET` | `/posts` | Récupère tous les posts (hors commentaires), paginés |
+| `GET` | `/posts/user/:userId` | Récupère tous les posts d'un utilisateur, paginés |
 | `GET` | `/posts/:id` | Récupère un post par son ID |
-| `GET` | `/posts/:id/comments` | Récupère les commentaires d'un post |
+| `GET` | `/posts/:id/comments` | Récupère les commentaires d'un post, paginés |
 | `POST` | `/posts` | Crée un post ou un commentaire |
 | `PUT` | `/posts/:id` | Modifie le contenu d'un post |
 | `DELETE` | `/posts/:id` | Supprime un post |
@@ -79,28 +80,50 @@ Réponse `200` : objet `PostDTO`
 
 ---
 
+### GET `/posts/user/:userId`
+
+| Paramètre | Emplacement | Type | Requis | Défaut | Description |
+|-----------|-------------|------|--------|--------|-------------|
+| `userId` | path | `string` | oui | — | ID de l'auteur |
+| `page` | query | `number` | non | `1` | Numéro de page (min : 1) |
+| `limit` | query | `number` | non | `10` | Nombre d'éléments par page (min : 1, max : 100) |
+
+Réponse `200` : objet `PaginatedPostsDTO` (même format que `GET /posts`)
+
+> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Les commentaires sont exclus.
+
+---
+
 ### GET `/posts/:id/comments`
 
-| Paramètre | Emplacement | Type | Requis | Description |
-|-----------|-------------|------|--------|-------------|
-| `id` | path | `string` | oui | ID MongoDB du post parent |
+| Paramètre | Emplacement | Type | Requis | Défaut | Description |
+|-----------|-------------|------|--------|--------|-------------|
+| `id` | path | `string` | oui | — | ID MongoDB du post parent |
+| `page` | query | `number` | non | `1` | Numéro de page (min : 1) |
+| `limit` | query | `number` | non | `10` | Nombre d'éléments par page (min : 1, max : 100) |
 
-Réponse `200` : tableau de `PostDTO`
+Réponse `200` : objet `PaginatedPostsDTO`
 
 ```json
-[
-  {
-    "id": "string",
-    "authorId": "string",
-    "content": "string",
-    "parentPostId": "string",
-    "tagsList": [],
-    "mediaList": [],
-    "mentionsList": [],
-    "createdAt": "Date",
-    "updatedAt": "Date"
-  }
-]
+{
+  "data": [
+    {
+      "id": "string",
+      "authorId": "string",
+      "content": "string",
+      "parentPostId": "string",
+      "tagsList": [],
+      "mediaList": [],
+      "mentionsList": [],
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 5
+}
 ```
 
 ---
@@ -161,21 +184,29 @@ Réponse `204` : aucun contenu
 
 ### GET `/posts/:postId/likes`
 
-| Paramètre | Emplacement | Type | Requis | Description |
-|-----------|-------------|------|--------|-------------|
-| `postId` | path | `string` | oui | ID MongoDB du post |
+| Paramètre | Emplacement | Type | Requis | Défaut | Description |
+|-----------|-------------|------|--------|--------|-------------|
+| `postId` | path | `string` | oui | — | ID MongoDB du post |
+| `page` | query | `number` | non | `1` | Numéro de page (min : 1) |
+| `limit` | query | `number` | non | `10` | Nombre d'éléments par page (min : 1, max : 100) |
 
-Réponse `200` : tableau de `LikeDTO`
+Réponse `200` : objet `PaginatedLikesDTO`
 
 ```json
-[
-  {
-    "id": "string",
-    "postId": "string",
-    "userId": "string",
-    "createdAt": "Date"
-  }
-]
+{
+  "data": [
+    {
+      "id": "string",
+      "postId": "string",
+      "userId": "string",
+      "createdAt": "Date"
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 5
+}
 ```
 
 ---

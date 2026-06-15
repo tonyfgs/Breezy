@@ -13,6 +13,7 @@ import { DeletePostUseCase } from './application/usecases/DeletePostUseCase';
 import { LikePostUseCase } from './application/usecases/LikePostUseCase';
 import { UnlikePostUseCase } from './application/usecases/UnlikePostUseCase';
 import { GetLikesByPostUseCase } from './application/usecases/GetLikesByPostUseCase';
+import { GetPostsByUserUseCase } from './application/usecases/GetPostsByUserUseCase';
 import { PostController } from './interfaces/controllers/PostController';
 import { LikeController } from './interfaces/controllers/LikeController';
 
@@ -32,6 +33,7 @@ const postController = new PostController(
     new GetPostUseCase(postRepository),
     new GetAllPostsUseCase(postRepository),
     new GetPostCommentsUseCase(postRepository),
+    new GetPostsByUserUseCase(postRepository),
     new UpdatePostUseCase(postRepository),
     new DeletePostUseCase(postRepository),
 );

@@ -19,9 +19,22 @@ export class PostRepository implements IPostRepository {
         return PostMapper.toDomain(result);
     }
 
-    async getComments(parentPostId: string): Promise<Post[]> {
-        const results = await PostModel.find({ parentPostId });
-        return results.map(PostMapper.toDomain);
+    async getPostsByUser(authorId: string, { page, limit }: PaginationParams): Promise<{ posts: Post[]; total: number }> {
+        const filter = { authorId, parentPostId: null };
+        const [results, total] = await Promise.all([
+            PostModel.find(filter).skip((page - 1) * limit).limit(limit),
+            PostModel.countDocuments(filter),
+        ]);
+        return { posts: results.map(PostMapper.toDomain), total };
+    }
+
+    async getComments(parentPostId: string, { page, limit }: PaginationParams): Promise<{ posts: Post[]; total: number }> {
+        const filter = { parentPostId };
+        const [results, total] = await Promise.all([
+            PostModel.find(filter).skip((page - 1) * limit).limit(limit),
+            PostModel.countDocuments(filter),
+        ]);
+        return { posts: results.map(PostMapper.toDomain), total };
     }
 
     async createPost(post: Post): Promise<Post> {

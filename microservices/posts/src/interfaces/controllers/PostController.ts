@@ -4,6 +4,7 @@ import { CreatePostUseCase } from '../../application/usecases/CreatePostUseCase'
 import { GetPostUseCase } from '../../application/usecases/GetPostUseCase';
 import { GetAllPostsUseCase } from '../../application/usecases/GetAllPostsUseCase';
 import { GetPostCommentsUseCase } from '../../application/usecases/GetPostCommentsUseCase';
+import { GetPostsByUserUseCase } from '../../application/usecases/GetPostsByUserUseCase';
 import { UpdatePostUseCase } from '../../application/usecases/UpdatePostUseCase';
 import { DeletePostUseCase } from '../../application/usecases/DeletePostUseCase';
 
@@ -16,6 +17,7 @@ export class PostController implements IController {
         private readonly getPostUseCase: GetPostUseCase,
         private readonly getAllPostsUseCase: GetAllPostsUseCase,
         private readonly getPostCommentsUseCase: GetPostCommentsUseCase,
+        private readonly getPostsByUserUseCase: GetPostsByUserUseCase,
         private readonly updatePostUseCase: UpdatePostUseCase,
         private readonly deletePostUseCase: DeletePostUseCase,
     ) {
@@ -24,6 +26,7 @@ export class PostController implements IController {
 
     private initialiseRoutes() {
         this.router.get('/', this.getAllPosts.bind(this));
+        this.router.get('/user/:userId', this.getPostsByUser.bind(this));
         this.router.get('/:id', this.getPost.bind(this));
         this.router.get('/:id/comments', this.getComments.bind(this));
         this.router.post('/', this.createPost.bind(this));
@@ -38,14 +41,23 @@ export class PostController implements IController {
         res.status(200).json(result);
     }
 
+    private async getPostsByUser(req: any, res: any): Promise<void> {
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const result = await this.getPostsByUserUseCase.execute(req.params.userId, page, limit);
+        res.status(200).json(result);
+    }
+
     private async getPost(req: any, res: any): Promise<void> {
         const post = await this.getPostUseCase.execute(req.params.id);
         res.status(200).json(post);
     }
 
     private async getComments(req: any, res: any): Promise<void> {
-        const comments = await this.getPostCommentsUseCase.execute(req.params.id);
-        res.status(200).json(comments);
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const result = await this.getPostCommentsUseCase.execute(req.params.id, page, limit);
+        res.status(200).json(result);
     }
 
     private async createPost(req: any, res: any): Promise<void> {

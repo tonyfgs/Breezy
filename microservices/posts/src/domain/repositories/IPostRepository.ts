@@ -7,8 +7,9 @@ export interface PaginationParams {
 
 export interface IPostRepository {
     getAllPosts(pagination: PaginationParams): Promise<{ posts: Post[]; total: number }>;
+    getPostsByUser(authorId: string, pagination: PaginationParams): Promise<{ posts: Post[]; total: number }>;
     getPost(id: string): Promise<Post>;
-    getComments(parentPostId: string): Promise<Post[]>;
+    getComments(parentPostId: string, pagination: PaginationParams): Promise<{ posts: Post[]; total: number }>;
     createPost(post: Post): Promise<Post>;
     updatePost(id: string, post: Partial<Post>): Promise<Post>;
     deletePost(id: string): Promise<void>;

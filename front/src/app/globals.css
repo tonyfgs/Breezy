@@ -8,6 +8,7 @@
 
   --color-primary: #a8ce85;
   --color-primary-shadow: rgba(168, 206, 133, 0.25);
+  --color-on-primary: #2d2d2d;
 
   --color-text-primary: #2d2d2d;
   --color-text-secondary: #919191;
@@ -440,7 +441,7 @@ img {
 
 .btn--primary {
   background-color: var(--color-primary);
-  color: var(--color-text-primary);
+  color: var(--color-on-primary);
   padding: var(--space-4) var(--space-6);
   box-shadow: 0 4px 16px var(--color-primary-shadow);
 }
@@ -1718,7 +1719,7 @@ img {
     padding: var(--space-2) var(--space-5);
     border-radius: var(--radius-full);
     background-color: var(--color-primary);
-    color: var(--color-text-primary);
+    color: var(--color-on-primary);
     font-family: var(--font-body);
     font-size: var(--text-sm);
     font-weight: var(--font-semibold);
@@ -1888,7 +1889,7 @@ img {
     padding: var(--space-4) var(--space-5);
     border-radius: var(--radius-full);
     background-color: var(--color-primary);
-    color: var(--color-text-primary);
+    color: var(--color-on-primary);
     font-size: var(--text-sm);
     font-weight: var(--font-semibold);
     font-family: var(--font-body);
@@ -2034,7 +2035,7 @@ img {
     font-weight: var(--font-semibold);
     font-family: var(--font-body);
     background-color: var(--color-primary);
-    color: var(--color-text-primary);
+    color: var(--color-on-primary);
     box-shadow: 0 2px 8px var(--color-primary-shadow);
     transition: opacity 0.15s;
   }
@@ -2124,7 +2125,7 @@ img {
 
   .auth-bubble--outgoing {
     background-color: var(--color-primary);
-    color: var(--color-text-primary);
+    color: var(--color-on-primary);
     border-radius: 18px 18px 4px 18px;
     align-self: flex-end;
   }

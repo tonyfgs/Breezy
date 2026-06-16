@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import Avatar from '../../components/ui/Avatar';
+import ThemeSwitch from '../../components/ui/ThemeSwitch';
 
 // TODO: remplacer par le contexte auth
 const MOCK_USER = {
@@ -67,6 +68,14 @@ export default function SettingsPage() {
             </div>
             <button type="submit" className="btn btn--primary btn--full">Enregistrer</button>
           </form>
+        </section>
+
+        <section className="settings-section">
+          <h2 className="settings-section__title">Apparence</h2>
+          <div className="settings-item">
+            <span className="settings-item__label">Thème sombre</span>
+            <ThemeSwitch />
+          </div>
         </section>
 
         <section className="settings-section">

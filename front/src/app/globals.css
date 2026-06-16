@@ -24,6 +24,14 @@
   --color-error-bg: #fff0f0;
   --color-border-error: #e57373;
 
+  --color-overlay: rgba(45, 45, 45, 0.5);
+  --color-hover-soft: rgba(45, 45, 45, 0.05);
+  --color-focus-ring: rgba(45, 45, 45, 0.15);
+  --color-border-soft: rgba(45, 45, 45, 0.2);
+  --color-tint-neutral: #f0f0ea;
+  --color-tint-primary-soft: #eef6e5;
+  --color-tint-primary-subtle: #f7fbf1;
+
   /* Typographie */
   --font-title: "Chillax", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -68,6 +76,41 @@
   --nav-height: 64px;
   --reply-bar-height: 64px;
   --max-width: 600px;
+}
+
+[data-theme="dark"] {
+  --color-bg: #16181a;
+  --color-surface: #1f2224;
+
+  --color-primary: #a8ce85;
+  --color-primary-shadow: rgba(168, 206, 133, 0.18);
+
+  --color-text-primary: #f1f1ea;
+  --color-text-secondary: #9a9a9a;
+
+  --color-border: rgba(255, 255, 255, 0.16);
+  --color-border-subtle: #2a2d2f;
+  --color-shadow: rgba(0, 0, 0, 0.4);
+
+  --color-success-text: #8fc46a;
+  --color-success-bg: rgba(94, 140, 68, 0.18);
+  --color-border-success: #8fc46a;
+
+  --color-error-text: #e57373;
+  --color-error-bg: rgba(229, 115, 115, 0.15);
+  --color-border-error: #e57373;
+
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-hover-soft: rgba(255, 255, 255, 0.06);
+  --color-focus-ring: rgba(255, 255, 255, 0.18);
+  --color-border-soft: rgba(255, 255, 255, 0.22);
+  --color-tint-neutral: #2a2d2f;
+  --color-tint-primary-soft: rgba(168, 206, 133, 0.18);
+  --color-tint-primary-subtle: rgba(168, 206, 133, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-nav: 0 -1px 12px rgba(0, 0, 0, 0.3);
 }
 
 *, *::before, *::after {
@@ -441,7 +484,7 @@ img {
 }
 
 .input-wrapper:focus-within {
-  border-color: rgba(45, 45, 45, 0.15);
+  border-color: var(--color-focus-ring);
 }
 
 .input-wrapper--success {
@@ -515,7 +558,7 @@ img {
   font-size: var(--text-xs);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
-  background-color: #f0f0ea;
+  background-color: var(--color-tint-neutral);
   color: var(--color-text-secondary);
 }
 
@@ -934,7 +977,7 @@ img {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(45, 45, 45, 0.5);
+  background-color: var(--color-overlay);
   z-index: 200;
   display: flex;
   align-items: flex-end;
@@ -1079,7 +1122,7 @@ img {
 
 .report-option--selected {
   border-color: var(--color-primary);
-  background-color: #eef6e5;
+  background-color: var(--color-tint-primary-soft);
 }
 
 .report-option__dot {
@@ -1369,7 +1412,7 @@ img {
 }
 
 .profile-hero__btn--edit {
-  border-color: rgba(45, 45, 45, 0.2);
+  border-color: var(--color-border-soft);
   color: var(--color-text-secondary);
 }
 
@@ -1396,7 +1439,7 @@ img {
 }
 
 .notif-item--unread {
-  background-color: #f7fbf1;
+  background-color: var(--color-tint-primary-subtle);
 }
 
 .notif-item__avatar-wrap {
@@ -1507,7 +1550,7 @@ img {
 }
 
 .settings-field__input:focus {
-  border-color: rgba(45, 45, 45, 0.2);
+  border-color: var(--color-border-soft);
 }
 
 .settings-field__input--textarea {
@@ -1544,6 +1587,40 @@ img {
 
 .settings-item__chevron {
   color: var(--color-text-secondary);
+}
+
+.theme-switch {
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-subtle);
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.theme-switch--dark {
+  background-color: var(--color-primary);
+}
+
+.theme-switch__thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+
+.theme-switch--dark .theme-switch__thumb {
+  transform: translateX(20px);
+  color: var(--color-primary);
 }
 
 .settings-section--danger {
@@ -1773,7 +1850,7 @@ img {
   }
 
   .side-nav__item:hover {
-    background-color: rgba(45, 45, 45, 0.05);
+    background-color: var(--color-hover-soft);
   }
 
   .side-nav__item--active {
@@ -1837,7 +1914,7 @@ img {
   }
 
   .side-nav__user:hover {
-    background-color: rgba(45, 45, 45, 0.05);
+    background-color: var(--color-hover-soft);
   }
 
   .side-nav__user-info {

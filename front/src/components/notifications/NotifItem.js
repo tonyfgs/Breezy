@@ -3,14 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { Heart, MessageCircle, UserPlus, AtSign } from 'lucide-react';
 import Avatar from '../ui/Avatar';
+import { useLanguage } from '../../context/LanguageContext';
 
 const ICONS = { like: Heart, comment: MessageCircle, follow: UserPlus, mention: AtSign };
-const TEXTS = {
-  like: 'a aimé ton post',
-  comment: 'a commenté ton post',
-  follow: 'te suit maintenant',
-  mention: "t'a mentionné",
-};
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -26,6 +21,7 @@ function getTarget(notif) {
 
 export default function NotifItem({ notif }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const Icon = ICONS[notif.cd_type];
 
   return (
@@ -40,7 +36,7 @@ export default function NotifItem({ notif }) {
         </span>
       </div>
       <p className="notif-item__text">
-        <strong>@{notif.actor.nm_username}</strong> {TEXTS[notif.cd_type]}
+        <strong>@{notif.actor.nm_username}</strong> {t(`notifications.${notif.cd_type}`)}
       </p>
       <span className="notif-item__time">{formatRelativeTime(notif.ts_createdAt)}</span>
     </button>

@@ -6,8 +6,10 @@ import Image from 'next/image';
 import { AtSign, Lock } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const [form, setForm] = useState({ handle: '', password: '' });
   const [error, setError] = useState('');
 
@@ -21,7 +23,7 @@ export default function LoginPage() {
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.handle.trim() || !form.password) {
-      setError('Identifiant et mot de passe requis.');
+      setError(t('auth.loginError'));
       return;
     }
 
@@ -41,10 +43,10 @@ export default function LoginPage() {
           />
           Breezy
         </div>
-        <p className="auth-brand-panel__tagline">Les vraies conversations n'ont pas de buzz</p>
+        <p className="auth-brand-panel__tagline">{t('auth.tagline')}</p>
         <div className="auth-brand-panel__bubbles">
-          <div className="auth-bubble auth-bubble--incoming">j'ai amené les croissants ce matin !</div>
-          <div className="auth-bubble auth-bubble--outgoing">je suis déjà en route</div>
+          <div className="auth-bubble auth-bubble--incoming">{t('auth.bubbleIncoming')}</div>
+          <div className="auth-bubble auth-bubble--outgoing">{t('auth.bubbleOutgoing')}</div>
         </div>
       </div>
 
@@ -62,15 +64,15 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-content">
-            <h1 className="auth-title">Content de te revoir.</h1>
-            <p className="auth-subtitle">Reprends la conversation là où tu l'avais laissée.</p>
+            <h1 className="auth-title">{t('auth.loginTitle')}</h1>
+            <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <Input
-                label="Identifiant"
+                label={t('auth.handleLabel')}
                 type="text"
                 name="handle"
-                placeholder="ton_identifiant"
+                placeholder={t('auth.handlePlaceholder')}
                 value={form.handle}
                 onChange={handleChange('handle')}
                 iconLeft={<AtSign size={16} />}
@@ -78,7 +80,7 @@ export default function LoginPage() {
 
               <div className="auth-field-group">
                 <Input
-                  label="Mot de passe"
+                  label={t('auth.passwordLabel')}
                   type="password"
                   name="password"
                   placeholder="••••••••"
@@ -87,15 +89,15 @@ export default function LoginPage() {
                   iconLeft={<Lock size={16} />}
                   error={error}
                 />
-                <Link href="/forgot-password" className="auth-forgot-link">Mot de passe oublié ?</Link>
+                <Link href="/forgot-password" className="auth-forgot-link">{t('auth.forgotPassword')}</Link>
               </div>
 
-              <Button type="submit" fullWidth>Se connecter</Button>
+              <Button type="submit" fullWidth>{t('auth.loginSubmit')}</Button>
             </form>
 
             <p className="auth-switch">
-              Pas encore de compte ?{' '}
-              <Link href="/register">Rejoins Breezy.</Link>
+              {t('auth.noAccount')}{' '}
+              <Link href="/register">{t('auth.joinBreezy')}</Link>
             </p>
           </div>
         </div>

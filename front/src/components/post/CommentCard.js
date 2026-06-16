@@ -5,6 +5,7 @@ import { Heart, MessageCircle, Flag } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
 import ReportModal from '../modals/ReportModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -14,6 +15,7 @@ function formatRelativeTime(isoString) {
 }
 
 export default function CommentCard({ comment }) {
+  const { t } = useLanguage();
   const [liked, setLiked] = useState(comment.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(comment.nb_likesCount ?? 0);
   const [showReplyModal, setShowReplyModal] = useState(false);
@@ -36,7 +38,7 @@ export default function CommentCard({ comment }) {
           <button
             className="comment-card__flag-btn"
             onClick={() => setShowReportModal(true)}
-            aria-label="Signaler"
+            aria-label={t('common.report')}
           >
             <Flag size={13} />
           </button>
@@ -48,7 +50,7 @@ export default function CommentCard({ comment }) {
           <button
             className={`comment-card__action${liked ? ' comment-card__action--liked' : ''}`}
             onClick={handleLike}
-            aria-label="J'aime"
+            aria-label={t('common.like')}
           >
             <Heart size={14} />
             <span>{likeCount}</span>
@@ -57,10 +59,10 @@ export default function CommentCard({ comment }) {
           <button
             className="comment-card__action"
             onClick={() => setShowReplyModal(true)}
-            aria-label="Répondre"
+            aria-label={t('common.reply')}
           >
             <MessageCircle size={14} />
-            <span>Répondre</span>
+            <span>{t('common.reply')}</span>
           </button>
         </div>
 

@@ -2,11 +2,13 @@
 
 import { useRef, useState } from 'react';
 import Avatar from '../ui/Avatar';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MAX_LENGTH = 280;
 const CURRENT_USER = { nm_username: 'camille', displayName: 'Camille Roche' };
 
 export default function FeedCompose() {
+  const { t } = useLanguage();
   const [content, setContent] = useState('');
   const textareaRef = useRef(null);
 
@@ -37,7 +39,7 @@ export default function FeedCompose() {
         <textarea
           ref={textareaRef}
           className="feed-compose__input"
-          placeholder="Lance une brise..."
+          placeholder={t('feed.composePlaceholder')}
           value={content}
           onChange={handleChange}
           maxLength={MAX_LENGTH}
@@ -52,7 +54,7 @@ export default function FeedCompose() {
             className="feed-compose__submit"
             disabled={!isValid}
           >
-            Publier
+            {t('common.publish')}
           </button>
         </div>
       </form>

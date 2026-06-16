@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import AppLayout from '../../components/layout/AppLayout';
 import SearchBar from '../../components/ui/SearchBar';
 import UserRow from '../../components/user/UserRow';
+import { useLanguage } from '../../context/LanguageContext';
 
 // TODO: API - GET /users/search?q=query (endpoint à définir côté backend)
 const MOCK_USERS = [
@@ -16,6 +17,7 @@ const MOCK_USERS = [
 ];
 
 export default function SearchPage() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
 
@@ -30,17 +32,17 @@ export default function SearchPage() {
         <SearchBar
           value={query}
           onChange={setQuery}
-          placeholder="Rechercher un utilisateur..."
+          placeholder={t('search.placeholder')}
           autoFocus
         />
       </div>
 
       <p className="search-section-label">
-        {trimmed ? 'Résultats' : 'Suggestions'}
+        {trimmed ? t('search.results') : t('search.suggestions')}
       </p>
 
       {trimmed && results.length === 0 ? (
-        <p className="search-empty">Aucun résultat pour « {query} »</p>
+        <p className="search-empty">{t('search.noResults', { query })}</p>
       ) : (
         <div className="user-list">
           {results.map(user => (

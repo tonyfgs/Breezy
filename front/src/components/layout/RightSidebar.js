@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Avatar from '../ui/Avatar';
+import { useLanguage } from '../../context/LanguageContext';
 
 // TODO: API - GET /api/users/suggestions
 const MOCK_SUGGESTIONS = [
@@ -12,6 +13,7 @@ const MOCK_SUGGESTIONS = [
 ];
 
 export default function RightSidebar() {
+  const { t } = useLanguage();
   const [suggestions, setSuggestions] = useState(MOCK_SUGGESTIONS);
 
   function toggleFollow(userId) {
@@ -24,7 +26,7 @@ export default function RightSidebar() {
   return (
     <aside className="right-sidebar">
       <div className="right-sidebar__suggestions">
-        <h2 className="right-sidebar__title">À suivre</h2>
+        <h2 className="right-sidebar__title">{t('sidebar.toFollow')}</h2>
         <ul className="right-sidebar__list">
           {suggestions.map(user => (
             <li key={user.sk_id} className="suggestion-row">
@@ -39,7 +41,7 @@ export default function RightSidebar() {
                 className={`suggestion-row__follow-btn${user.fl_followed ? ' suggestion-row__follow-btn--following' : ''}`}
                 onClick={() => toggleFollow(user.sk_id)}
               >
-                {user.fl_followed ? 'Suivi' : 'Suivre'}
+                {user.fl_followed ? t('sidebar.following') : t('sidebar.follow')}
               </button>
             </li>
           ))}

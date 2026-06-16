@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MAX_CHARS = 280;
 
@@ -14,6 +15,7 @@ const MOCK_CURRENT_USER = {
 };
 
 export default function CreatePostModal({ onClose }) {
+  const { t } = useLanguage();
   const [content, setContent] = useState('');
 
   const remaining = MAX_CHARS - content.length;
@@ -36,7 +38,7 @@ export default function CreatePostModal({ onClose }) {
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal modal--compose">
         <div className="modal__header">
-          <button className="modal__close-btn" onClick={onClose} aria-label="Fermer">
+          <button className="modal__close-btn" onClick={onClose} aria-label={t('common.close')}>
             <X size={20} />
           </button>
           <Button
@@ -44,7 +46,7 @@ export default function CreatePostModal({ onClose }) {
             form="create-post-form"
             disabled={!canSubmit}
           >
-            Publier
+            {t('common.publish')}
           </Button>
         </div>
 
@@ -53,7 +55,7 @@ export default function CreatePostModal({ onClose }) {
             <Avatar name={MOCK_CURRENT_USER.nm_username} size="md" />
             <textarea
               className="modal__textarea"
-              placeholder="Quoi de neuf ?"
+              placeholder={t('modals.composePlaceholder')}
               value={content}
               onChange={e => setContent(e.target.value)}
               autoFocus

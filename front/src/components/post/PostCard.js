@@ -6,6 +6,7 @@ import { Heart, MessageCircle, Flag } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
 import ReportModal from '../modals/ReportModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -16,6 +17,7 @@ function formatRelativeTime(isoString) {
 
 export default function PostCard({ post }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [liked, setLiked] = useState(post.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(post.nb_likesCount ?? 0);
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -39,7 +41,7 @@ export default function PostCard({ post }) {
           <button
             className="post-card__author"
             onClick={e => { e.stopPropagation(); router.push(`/profile/${post.author.nm_username}`); }}
-            aria-label={`Voir le profil de @${post.author.nm_username}`}
+            aria-label={t('common.viewProfileOf', { username: post.author.nm_username })}
           >
             <Avatar name={post.author.nm_username} size="md" />
             <div className="post-card__meta">
@@ -47,7 +49,7 @@ export default function PostCard({ post }) {
               <span className="post-card__subline">{formatRelativeTime(post.ts_createdAt)}</span>
             </div>
           </button>
-          <button className="post-card__flag-btn" aria-label="Signaler" onClick={e => { e.stopPropagation(); setShowReportModal(true); }}>
+          <button className="post-card__flag-btn" aria-label={t('common.report')} onClick={e => { e.stopPropagation(); setShowReportModal(true); }}>
             <Flag size={14} />
           </button>
         </div>
@@ -58,13 +60,13 @@ export default function PostCard({ post }) {
           <button
             className={`post-card__action${liked ? ' post-card__action--liked' : ''}`}
             onClick={handleLike}
-            aria-label="J'aime"
+            aria-label={t('common.like')}
           >
             <Heart size={16} />
             <span>{likeCount}</span>
           </button>
 
-          <button className="post-card__action" aria-label="Commenter" onClick={handleComment}>
+          <button className="post-card__action" aria-label={t('common.comment')} onClick={handleComment}>
             <MessageCircle size={16} />
             <span>{post.nb_commentsCount}</span>
           </button>

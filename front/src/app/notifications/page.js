@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AppLayout from '../../components/layout/AppLayout';
 import NotifItem from '../../components/notifications/NotifItem';
+import { useLanguage } from '../../context/LanguageContext';
 
 // TODO: API - GET /notifications
 const MOCK_NOTIFICATIONS = [
@@ -41,6 +42,7 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function NotificationsPage() {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const hasUnread = notifications.some(n => !n.fl_read);
 
@@ -52,10 +54,10 @@ export default function NotificationsPage() {
   return (
     <AppLayout>
       <header className="page-header">
-        <h1 className="page-header__title">Notifications</h1>
+        <h1 className="page-header__title">{t('notifications.title')}</h1>
         {hasUnread && (
           <button className="page-header__action" onClick={handleReadAll}>
-            Tout lire
+            {t('notifications.readAll')}
           </button>
         )}
       </header>

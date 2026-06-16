@@ -2,9 +2,11 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function ThemeSwitch() {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const isDark = theme === 'dark';
 
   return (
@@ -14,7 +16,7 @@ export default function ThemeSwitch() {
       onClick={toggleTheme}
       role="switch"
       aria-checked={isDark}
-      aria-label="Activer le thème sombre"
+      aria-label={t('settings.darkThemeAria')}
     >
       <span className="theme-switch__thumb">
         {isDark ? <Moon size={14} /> : <Sun size={14} />}

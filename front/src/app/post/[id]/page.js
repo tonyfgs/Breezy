@@ -8,6 +8,7 @@ import Avatar from '../../../components/ui/Avatar';
 import CommentCard from '../../../components/post/CommentCard';
 import CommentModal from '../../../components/modals/CommentModal';
 import ReportModal from '../../../components/modals/ReportModal';
+import { useLanguage } from '../../../context/LanguageContext';
 
 const SHARED_COMMENTS = [
   {
@@ -136,6 +137,7 @@ const MOCK_COMMENTS = {
 export default function PostDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
+  const { t, dateLocale } = useLanguage();
 
   const post = MOCK_POSTS[id];
   const comments = MOCK_COMMENTS[id] ?? [];
@@ -148,7 +150,7 @@ export default function PostDetailPage({ params }) {
   if (!post) {
     return (
       <AppLayout>
-        <p className="search-empty">Post introuvable.</p>
+        <p className="search-empty">{t('post.notFound')}</p>
       </AppLayout>
     );
   }
@@ -158,9 +160,9 @@ export default function PostDetailPage({ params }) {
     setLiked(prev => !prev);
   }
 
-  const formattedDate = new Date(post.ts_createdAt).toLocaleTimeString('fr-FR', {
+  const formattedDate = new Date(post.ts_createdAt).toLocaleTimeString(dateLocale, {
     hour: '2-digit', minute: '2-digit',
-  }) + ' · ' + new Date(post.ts_createdAt).toLocaleDateString('fr-FR', {
+  }) + ' · ' + new Date(post.ts_createdAt).toLocaleDateString(dateLocale, {
     day: 'numeric', month: 'long', year: 'numeric',
   });
 
@@ -168,10 +170,10 @@ export default function PostDetailPage({ params }) {
     <>
       <AppLayout>
         <header className="post-detail__header">
-          <button className="post-detail__back-btn" onClick={() => router.back()} aria-label="Retour">
+          <button className="post-detail__back-btn" onClick={() => router.back()} aria-label={t('common.back')}>
             <ChevronLeft size={22} />
           </button>
-          <h1 className="post-detail__title">Breezy</h1>
+          <h1 className="post-detail__title">{t('post.headerTitle')}</h1>
         </header>
 
         <div className="post-detail__post">
@@ -189,9 +191,9 @@ export default function PostDetailPage({ params }) {
           <div className="post-detail__divider" />
 
           <div className="post-detail__post-stats">
-            <span><strong>{likeCount}</strong> J'aime</span>
+            <span><strong>{likeCount}</strong> {t('post.likesLabel')}</span>
             <span className="post-detail__stats-dot">·</span>
-            <span><strong>{post.nb_commentsCount}</strong> Réponses</span>
+            <span><strong>{post.nb_commentsCount}</strong> {t('post.repliesLabel')}</span>
           </div>
 
           <div className="post-detail__divider" />
@@ -200,23 +202,23 @@ export default function PostDetailPage({ params }) {
             <button
               className={`post-detail__action${liked ? ' post-detail__action--liked' : ''}`}
               onClick={handleLike}
-              aria-label="J'aime"
+              aria-label={t('common.like')}
             >
               <Heart size={18} />
-              <span>J'aime</span>
+              <span>{t('common.like')}</span>
             </button>
             <button
               className="post-detail__action"
               onClick={() => setShowCommentModal(true)}
-              aria-label="Répondre"
+              aria-label={t('common.reply')}
             >
               <MessageCircle size={18} />
-              <span>Répondre</span>
+              <span>{t('common.reply')}</span>
             </button>
             <button
               className="post-detail__flag-btn"
               onClick={() => setShowReportModal(true)}
-              aria-label="Signaler"
+              aria-label={t('common.report')}
             >
               <Flag size={18} />
             </button>
@@ -224,7 +226,7 @@ export default function PostDetailPage({ params }) {
         </div>
 
         <p className="post-detail__comments-header">
-          {comments.length} réponse{comments.length > 1 ? 's' : ''}
+          {t(comments.length > 1 ? 'post.repliesCountPlural' : 'post.repliesCountSingular', { count: comments.length })}
         </p>
 
         <div>

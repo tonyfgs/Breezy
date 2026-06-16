@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import Button from '../ui/Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MAX_CHARS = 280;
 
 export default function CommentModal({ post, onClose }) {
+  const { t } = useLanguage();
   const [content, setContent] = useState('');
 
   const remaining = MAX_CHARS - content.length;
@@ -28,8 +30,8 @@ export default function CommentModal({ post, onClose }) {
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal">
         <div className="modal__header">
-          <h2 className="modal__title">Répondre</h2>
-          <button className="modal__close-btn" onClick={onClose} aria-label="Fermer">
+          <h2 className="modal__title">{t('modals.replyTitle')}</h2>
+          <button className="modal__close-btn" onClick={onClose} aria-label={t('common.close')}>
             <X size={20} />
           </button>
         </div>
@@ -41,7 +43,7 @@ export default function CommentModal({ post, onClose }) {
         <form className="modal__reply-form" onSubmit={handleSubmit}>
           <textarea
             className="modal__textarea"
-            placeholder="Ta réponse..."
+            placeholder={t('modals.replyPlaceholder')}
             value={content}
             onChange={e => setContent(e.target.value)}
             autoFocus
@@ -53,7 +55,7 @@ export default function CommentModal({ post, onClose }) {
               </span>
             )}
             <Button type="submit" disabled={!content.trim() || isOverLimit}>
-              Répondre
+              {t('common.reply')}
             </Button>
           </div>
         </form>

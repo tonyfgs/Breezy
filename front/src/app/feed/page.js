@@ -1,6 +1,9 @@
+'use client';
+
 import AppLayout from '../../components/layout/AppLayout';
 import PostCard from '../../components/post/PostCard';
 import FeedCompose from '../../components/post/FeedCompose';
+import { useLanguage } from '../../context/LanguageContext';
 
 // TODO: API - GET /api/posts/feed
 // Structure basée sur les modèles Post + User (profiles) + likes
@@ -106,10 +109,12 @@ const MOCK_FEED = [
 ];
 
 export default function FeedPage() {
+  const { t } = useLanguage();
+
   return (
     <AppLayout>
       <header className="feed-header">
-        <h1 className="feed-header__title">Accueil</h1>
+        <h1 className="feed-header__title">{t('feed.title')}</h1>
       </header>
       <div className="feed-compose-wrapper">
         <FeedCompose />

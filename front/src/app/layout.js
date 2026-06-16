@@ -1,5 +1,6 @@
 import "./globals.css";
 import { ThemeProvider } from "../context/ThemeContext";
+import { LanguageProvider } from "../context/LanguageContext";
 
 export const metadata = {
   title: "Breezy",
@@ -20,12 +21,14 @@ const THEME_INIT_SCRIPT = `
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

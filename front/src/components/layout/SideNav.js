@@ -7,23 +7,25 @@ import Image from 'next/image';
 import { Home, Search, Bell, User, Settings, PenLine, MoreHorizontal } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CreatePostModal from '../modals/CreatePostModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 const MOCK_CURRENT_USER = {
   nm_username: 'camille',
   displayName: 'Camille Roche',
 };
 
-const NAV_ITEMS = [
-  { href: '/feed', icon: Home, label: 'Feed' },
-  { href: '/search', icon: Search, label: 'Découvrir' },
-  { href: '/notifications', icon: Bell, label: 'Notifications' },
-  { href: '/profile/me', icon: User, label: 'Profil' },
-  { href: '/settings', icon: Settings, label: 'Réglages' },
-];
-
 export default function SideNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const NAV_ITEMS = [
+    { href: '/feed', icon: Home, label: t('nav.feed'), notifKey: false },
+    { href: '/search', icon: Search, label: t('nav.discover') },
+    { href: '/notifications', icon: Bell, label: t('nav.notifications'), notifKey: true },
+    { href: '/profile/me', icon: User, label: t('nav.profile') },
+    { href: '/settings', icon: Settings, label: t('nav.settings') },
+  ];
 
   // TODO: API - GET /api/notifications/unread-count
   const hasNotifications = false;
@@ -43,7 +45,7 @@ export default function SideNav() {
         </div>
 
         <ul className="side-nav__list">
-          {NAV_ITEMS.map(({ href, icon: Icon, label, matchPrefix }) => {
+          {NAV_ITEMS.map(({ href, icon: Icon, label, notifKey, matchPrefix }) => {
             const isActive = matchPrefix
               ? pathname.startsWith(matchPrefix)
               : pathname === href;
@@ -55,7 +57,7 @@ export default function SideNav() {
                 >
                   <div className="side-nav__icon-wrapper">
                     <Icon size={20} />
-                    {label === 'Notifications' && hasNotifications && (
+                    {notifKey && hasNotifications && (
                       <span className="side-nav__notif-dot" />
                     )}
                   </div>
@@ -71,7 +73,7 @@ export default function SideNav() {
           onClick={() => setShowCreateModal(true)}
         >
           <PenLine size={18} strokeWidth={2.5} />
-          Nouvelle brise
+          {t('nav.newPost')}
         </button>
 
         <Link href="/profile/me" className="side-nav__user">
@@ -80,7 +82,7 @@ export default function SideNav() {
             <span className="side-nav__user-name">{MOCK_CURRENT_USER.displayName}</span>
             <span className="side-nav__user-handle">@{MOCK_CURRENT_USER.nm_username}</span>
           </div>
-          <button className="side-nav__user-more" aria-label="Plus d'options" onClick={e => e.preventDefault()}>
+          <button className="side-nav__user-more" aria-label={t('nav.moreOptions')} onClick={e => e.preventDefault()}>
             <MoreHorizontal size={18} />
           </button>
         </Link>

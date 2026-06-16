@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ChevronLeft, AtSign, Mail, Lock, Check } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -20,6 +21,7 @@ function getPasswordRules(password) {
 }
 
 export default function RegisterPage() {
+  const { t } = useLanguage();
   const [form, setForm] = useState({ name: '', handle: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [handleAvailable, setHandleAvailable] = useState(null);
@@ -37,7 +39,7 @@ export default function RegisterPage() {
         setForm(prev => ({ ...prev, handle: clean }));
 
         if (clean && !/^[a-zA-Z0-9_.]+$/.test(clean)) {
-          setErrors(prev => ({ ...prev, handle: 'Caractères autorisés : lettres, chiffres, _ et .' }));
+          setErrors(prev => ({ ...prev, handle: t('auth.handleInvalidChars') }));
           setHandleAvailable(null);
           return;
         }
@@ -51,7 +53,7 @@ export default function RegisterPage() {
       if (field === 'email') {
         setErrors(prev => ({
           ...prev,
-          email: value && !validateEmail(value) ? "Format d'e-mail invalide — il manque le « @ »." : '',
+          email: value && !validateEmail(value) ? t('auth.emailInvalid') : '',
         }));
       }
     };
@@ -60,10 +62,10 @@ export default function RegisterPage() {
   function handleSubmit(e) {
     e.preventDefault();
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = 'Le nom est requis.';
-    if (!form.handle.trim()) newErrors.handle = "L'identifiant est requis.";
-    if (!validateEmail(form.email)) newErrors.email = "Format d'e-mail invalide — il manque le « @ ».";
-    if (!isPasswordValid) newErrors.password = 'Le mot de passe ne respecte pas les règles.';
+    if (!form.name.trim()) newErrors.name = t('auth.nameRequired');
+    if (!form.handle.trim()) newErrors.handle = t('auth.handleRequired');
+    if (!validateEmail(form.email)) newErrors.email = t('auth.emailInvalid');
+    if (!isPasswordValid) newErrors.password = t('auth.passwordInvalid');
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -86,10 +88,10 @@ export default function RegisterPage() {
           />
           Breezy
         </div>
-        <p className="auth-brand-panel__tagline">Les vraies conversations n'ont pas de buzz</p>
+        <p className="auth-brand-panel__tagline">{t('auth.tagline')}</p>
         <div className="auth-brand-panel__bubbles">
-          <div className="auth-bubble auth-bubble--incoming">j'ai amené les croissants ce matin !</div>
-          <div className="auth-bubble auth-bubble--outgoing">je suis déjà en route</div>
+          <div className="auth-bubble auth-bubble--incoming">{t('auth.bubbleIncoming')}</div>
+          <div className="auth-bubble auth-bubble--outgoing">{t('auth.bubbleOutgoing')}</div>
         </div>
       </div>
 
@@ -106,43 +108,43 @@ export default function RegisterPage() {
             Breezy
           </div>
 
-          <Link href="/login" className="auth-back-btn" aria-label="Retour">
+          <Link href="/login" className="auth-back-btn" aria-label={t('common.back')}>
             <ChevronLeft size={22} />
           </Link>
 
           <div className="auth-content">
-            <h1 className="auth-title">Rejoins Breezy.</h1>
-            <p className="auth-subtitle">Une place douce pour partager tes pensées du jour.</p>
+            <h1 className="auth-title">{t('auth.registerTitle')}</h1>
+            <p className="auth-subtitle">{t('auth.registerSubtitle')}</p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <Input
-                label="Nom"
+                label={t('auth.nameLabel')}
                 type="text"
                 name="name"
-                placeholder="Ton nom complet"
+                placeholder={t('auth.namePlaceholder')}
                 value={form.name}
                 onChange={handleChange('name')}
                 error={errors.name}
               />
 
               <Input
-                label="Identifiant"
+                label={t('auth.handleLabel')}
                 type="text"
                 name="handle"
-                placeholder="ton_identifiant"
+                placeholder={t('auth.handlePlaceholder')}
                 value={form.handle}
                 onChange={handleChange('handle')}
                 iconLeft={<AtSign size={16} />}
                 iconRight={handleAvailable ? <Check size={16} /> : null}
-                success={handleAvailable ? 'Identifiant disponible' : ''}
+                success={handleAvailable ? t('auth.handleAvailable') : ''}
                 error={errors.handle}
               />
 
               <Input
-                label="Adresse e-mail"
+                label={t('auth.emailLabel')}
                 type="email"
                 name="email"
-                placeholder="adresse@email.com"
+                placeholder={t('auth.emailPlaceholder')}
                 value={form.email}
                 onChange={handleChange('email')}
                 iconLeft={<Mail size={16} />}
@@ -150,7 +152,7 @@ export default function RegisterPage() {
               />
 
               <Input
-                label="Mot de passe"
+                label={t('auth.passwordLabel')}
                 type="password"
                 name="password"
                 placeholder="••••••••"
@@ -161,27 +163,27 @@ export default function RegisterPage() {
               >
                 {form.password && (
                   <div className="password-rules">
-                    <span className={`password-rule${passwordRules.hasLength ? ' password-rule--met' : ''}`}>8 caractères</span>
-                    <span className={`password-rule${passwordRules.hasDigit ? ' password-rule--met' : ''}`}>1 chiffre</span>
-                    <span className={`password-rule${passwordRules.hasUpper ? ' password-rule--met' : ''}`}>1 majuscule</span>
+                    <span className={`password-rule${passwordRules.hasLength ? ' password-rule--met' : ''}`}>{t('auth.passwordRuleLength')}</span>
+                    <span className={`password-rule${passwordRules.hasDigit ? ' password-rule--met' : ''}`}>{t('auth.passwordRuleDigit')}</span>
+                    <span className={`password-rule${passwordRules.hasUpper ? ' password-rule--met' : ''}`}>{t('auth.passwordRuleUpper')}</span>
                   </div>
                 )}
               </Input>
 
-              <Button type="submit" fullWidth>Créer mon compte</Button>
+              <Button type="submit" fullWidth>{t('auth.registerSubmit')}</Button>
 
               <p className="auth-legal">
-                En continuant, tu acceptes les{' '}
-                <Link href="/legal/terms"><strong>Conditions</strong></Link>{' '}
-                et la{' '}
-                <Link href="/legal/privacy"><strong>Politique de confidentialité</strong></Link>{' '}
-                de Breezy.
+                {t('auth.legalPrefix')}{' '}
+                <Link href="/legal/terms"><strong>{t('auth.legalTerms')}</strong></Link>{' '}
+                {t('auth.legalAnd')}{' '}
+                <Link href="/legal/privacy"><strong>{t('auth.legalPrivacy')}</strong></Link>{' '}
+                {t('auth.legalSuffix')}
               </p>
             </form>
 
             <p className="auth-switch">
-              Déjà un compte ?{' '}
-              <Link href="/login">Connecte-toi.</Link>
+              {t('auth.hasAccount')}{' '}
+              <Link href="/login">{t('auth.loginLink')}</Link>
             </p>
           </div>
         </div>

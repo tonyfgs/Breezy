@@ -6,6 +6,7 @@ import { ChevronLeft, Settings } from 'lucide-react';
 import AppLayout from '../../../components/layout/AppLayout';
 import Avatar, { getColor } from '../../../components/ui/Avatar';
 import PostCard from '../../../components/post/PostCard';
+import { useLanguage } from '../../../context/LanguageContext';
 
 // TODO: API - GET /users/:username
 const MOCK_PROFILES = {
@@ -152,6 +153,7 @@ const CURRENT_USER_USERNAME = 'camille';
 export default function ProfilePage({ params }) {
   const { username: rawUsername } = use(params);
   const router = useRouter();
+  const { t, dateLocale } = useLanguage();
 
   // TODO: avec l'API, "me" sera résolu par GET /users/me (alias JWT côté backend)
   const username = rawUsername === 'me' ? CURRENT_USER_USERNAME : rawUsername;
@@ -165,7 +167,7 @@ export default function ProfilePage({ params }) {
   if (!profile) {
     return (
       <AppLayout>
-        <p className="search-empty">Utilisateur introuvable.</p>
+        <p className="search-empty">{t('profile.notFound')}</p>
       </AppLayout>
     );
   }
@@ -173,12 +175,12 @@ export default function ProfilePage({ params }) {
   return (
     <AppLayout>
       <header className="profile-page-header">
-        <button className="profile-page-header__back" onClick={() => router.back()} aria-label="Retour">
+        <button className="profile-page-header__back" onClick={() => router.back()} aria-label={t('common.back')}>
           <ChevronLeft size={22} />
         </button>
         <span className="profile-page-header__username">@{profile.nm_username}</span>
         {isOwnProfile && (
-          <button className="profile-page-header__settings" onClick={() => router.push('/settings')} aria-label="Paramètres">
+          <button className="profile-page-header__settings" onClick={() => router.push('/settings')} aria-label={t('profile.settingsLabel')}>
             <Settings size={20} />
           </button>
         )}
@@ -193,13 +195,13 @@ export default function ProfilePage({ params }) {
         <div className="profile-hero__top">
           <Avatar name={profile.nm_username} size="lg" />
           {isOwnProfile ? (
-            <button className="profile-hero__btn profile-hero__btn--edit" onClick={() => router.push('/settings')}>Modifier le profil</button>
+            <button className="profile-hero__btn profile-hero__btn--edit" onClick={() => router.push('/settings')}>{t('profile.editProfile')}</button>
           ) : (
             <button
               className={`profile-hero__btn${following ? ' profile-hero__btn--following' : ''}`}
               onClick={() => setFollowing(prev => !prev)}
             >
-              {following ? 'Abonné' : "S'abonner"}
+              {following ? t('profile.following') : t('profile.follow')}
             </button>
           )}
         </div>
@@ -215,10 +217,10 @@ export default function ProfilePage({ params }) {
 
         <div className="profile-hero__stats">
           <span className="profile-hero__stat">
-            <strong>{profile.nb_followingCount.toLocaleString('fr-FR')}</strong> abonnements
+            <strong>{profile.nb_followingCount.toLocaleString(dateLocale)}</strong> {t('profile.followingCount')}
           </span>
           <span className="profile-hero__stat">
-            <strong>{profile.nb_followersCount.toLocaleString('fr-FR')}</strong> abonnés
+            <strong>{profile.nb_followersCount.toLocaleString(dateLocale)}</strong> {t('profile.followersCount')}
           </span>
         </div>
       </div>

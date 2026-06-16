@@ -3,17 +3,19 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import Button from '../ui/Button';
+import { useLanguage } from '../../context/LanguageContext';
 
 const REPORT_REASONS = [
-  { cd: 'inappropriate', label: 'Contenu inapproprié' },
-  { cd: 'spam', label: 'Spam' },
-  { cd: 'harassment', label: 'Harcèlement' },
-  { cd: 'misinformation', label: 'Fausse information' },
-  { cd: 'hate_speech', label: 'Discours haineux' },
-  { cd: 'other', label: 'Autre' },
+  { cd: 'inappropriate', key: 'reasonInappropriate' },
+  { cd: 'spam', key: 'reasonSpam' },
+  { cd: 'harassment', key: 'reasonHarassment' },
+  { cd: 'misinformation', key: 'reasonMisinformation' },
+  { cd: 'hate_speech', key: 'reasonHateSpeech' },
+  { cd: 'other', key: 'reasonOther' },
 ];
 
 export default function ReportModal({ targetId, targetType = 'post', onClose }) {
+  const { t } = useLanguage();
   const [selectedReason, setSelectedReason] = useState(null);
 
   function handleSubmit(e) {
@@ -36,13 +38,13 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal">
         <div className="modal__header">
-          <h2 className="modal__title">{targetType === 'comment' ? 'Signaler ce commentaire' : 'Signaler ce post'}</h2>
-          <button className="modal__close-btn" onClick={onClose} aria-label="Fermer">
+          <h2 className="modal__title">{targetType === 'comment' ? t('modals.reportCommentTitle') : t('modals.reportPostTitle')}</h2>
+          <button className="modal__close-btn" onClick={onClose} aria-label={t('common.close')}>
             <X size={20} />
           </button>
         </div>
 
-        <p className="report-subtitle">Pourquoi tu veux signaler ce post ?</p>
+        <p className="report-subtitle">{t('modals.reportSubtitle')}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="report-list">
@@ -53,14 +55,14 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
                 className={`report-option${selectedReason === reason.cd ? ' report-option--selected' : ''}`}
                 onClick={() => setSelectedReason(reason.cd)}
               >
-                {reason.label}
+                {t(`modals.${reason.key}`)}
                 <span className="report-option__dot" />
               </button>
             ))}
           </div>
 
           <Button type="submit" fullWidth disabled={!selectedReason}>
-            Signaler
+            {t('modals.reportSubmit')}
           </Button>
         </form>
       </div>

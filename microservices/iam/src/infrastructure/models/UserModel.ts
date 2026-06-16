@@ -1,11 +1,12 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
+import { Role, ROLES } from '../../domain/entities/Role';
 
 interface IUserAttributes {
     id: number;
     username: string;
     passwordHash: string;
-    role: string;
+    role: Role;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -16,7 +17,7 @@ export class UserModel extends Model<IUserAttributes, IUserCreationAttributes> i
     public id!: number;
     public username!: string;
     public passwordHash!: string;
-    public role!: string;
+    public role!: Role;
     public createdAt!: Date;
     public updatedAt!: Date;
 }
@@ -26,7 +27,7 @@ UserModel.init(
         id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         username: { type: DataTypes.STRING, unique: true, allowNull: false },
         passwordHash: { type: DataTypes.STRING, allowNull: false },
-        role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'user' },
+        role: { type: DataTypes.ENUM(...ROLES), allowNull: false, defaultValue: 'user' },
         createdAt: { type: DataTypes.DATE },
         updatedAt: { type: DataTypes.DATE },
     },

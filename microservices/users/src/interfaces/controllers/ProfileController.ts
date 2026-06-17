@@ -29,21 +29,11 @@ export class ProfileController implements IController{
     }
 
     private initialiseRoutes() {
-
-        // Get all profiles
         this.router.get(`/`, this.getAllProfiles.bind(this));
-
-        // Get Profile by id
         this.router.get(`/:id`, this.getProfile.bind(this));
-
-        // Create Profile
         this.router.post(`/`, this.createProfile.bind(this));
-
-        // Delete Profile
         this.router.delete(`/:id`, this.deleteProfile.bind(this));
-
-        // Update Profile
-        this.router.patch(`/:id`, this.updateProfile.bind(this));
+        this.router.patch(`/:id`, this.patchProfile.bind(this));
     }
 
     private async getAllProfiles(_req: any, res: any): Promise<void> {
@@ -71,13 +61,12 @@ export class ProfileController implements IController{
         res.status(200).json(profile);
     }
 
-    private async updateProfile(req: any, res: any): Promise<any> {
-        const id = req.params.id;
-        const profile = req.body;
-        const updatedProfile = await this.updateProfileUseCase.execute(id, profile);
-        res.status(200).json(updatedProfile);
+    private async patchProfile(req: any, res: any): Promise<void> {
+        try {
+            const updated = await this.updateProfileUseCase.execute(req.params.id, req.body);
+            res.status(200).json(updated);
+        } catch (err: any) {
+            res.status(404).json({ message: err.message });
+        }
     }
-
-
-
 }

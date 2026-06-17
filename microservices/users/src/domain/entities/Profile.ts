@@ -3,17 +3,17 @@ export class Profile {
     username: string;
     bio: string;
     avatar: string;
+    fl_banned: number;
     createdAt: Date;
     updatedAt: Date;
 
-    constructor(username: string, bio: string, avatar: string,id?: string) {
+    constructor(username: string, bio: string, avatar: string, id?: string) {
         this.id = id;
         this.username = username;
         this.bio = bio;
         this.avatar = avatar;
+        this.fl_banned = 0;
         this.createdAt = new Date();
         this.updatedAt = new Date();
     }
-
-
 }

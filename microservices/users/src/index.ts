@@ -7,6 +7,11 @@ import { DeleteProfileUseCase } from './application/usecases/DeleteProfileUseCas
 import { UpdateProfileUseCase } from './application/usecases/UpdateProfileUseCase';
 import { GetAllProfilesUseCase } from './application/usecases/GetAllProfilesUseCase';
 import { ProfileController } from './interfaces/controllers/ProfileController';
+import { FollowRepository } from './infrastructure/repository/FollowRepository';
+import { CreateFollowUseCase } from './application/usecases/CreateFollowUseCase';
+import { GetFollowersUseCase } from './application/usecases/GetFollowersUseCase';
+import { GetFollowingUseCase } from './application/usecases/GetFollowingUseCase';
+import { FollowController } from './interfaces/controllers/FollowController';
 import 'dotenv/config';
 import {IController} from "./interfaces/controllers/IController";
 
@@ -27,6 +32,16 @@ const profileController = new ProfileController(
 );
 
 controllerTable.push(profileController);
+
+// Follow DI
+const followRepository = new FollowRepository();
+const followController = new FollowController(
+    new CreateFollowUseCase(followRepository),
+    new GetFollowersUseCase(followRepository),
+    new GetFollowingUseCase(followRepository)
+);
+
+controllerTable.push(followController);
 
 for (const controller of controllerTable) {
     app.use(controller.path, controller.router);

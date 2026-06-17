@@ -11,7 +11,7 @@ import {ProfileDTO} from "../../application/dto/ProfileDTO";
 export class ProfileController implements IController{
 
     public readonly path: string= '/users/';
-    public readonly router = Router();
+    public readonly router: Router = Router();
 
     private createProfileUseCase: CreateProfileUseCase;
     private deleteProfileUseCase: DeleteProfileUseCase;

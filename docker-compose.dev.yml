@@ -22,19 +22,6 @@ services:
       - "4000:80"
     depends_on:
       - iam
-      - test-private
-
-  test-private:
-    build:
-      context: ./microservices/test-private
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./microservices/test-private:/app
-      - /app/node_modules
-    ports:
-      - "4005:3000"
-    environment:
-      - PORT=3000
 
   iam:
     build:

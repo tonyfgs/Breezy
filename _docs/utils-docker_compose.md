@@ -23,7 +23,6 @@
 | `users` | 4002 | MongoDB | `users-db` | 27018 |
 | `posts` | 4003 | MongoDB | `posts-db` | 27019 |
 | `notifications` | 4004 | — | — | — |
-| `test-private` | 4005 | — | — | — |
 | `moderation` | 4006 | MongoDB | `moderation-db` | 27020 |
 
 ---
@@ -55,8 +54,6 @@ docker compose -f docker-compose.dev.yml up --build
 # NGINX + IAM + sa base
 docker compose -f docker-compose.dev.yml up api-gateway iam iam-db
 
-# NGINX + IAM + Posts + leurs bases + test-private
-docker compose -f docker-compose.dev.yml up -d api-gateway iam iam-db posts posts-db test-private
 
 # Uniquement le service Posts et sa base
 docker compose -f docker-compose.dev.yml up posts posts-db

@@ -32,7 +32,9 @@ export class FollowRepository implements IFollowRepository {
     }
 
 
-    deleteFollow(follwerId: string, followingId: string): Promise<Array<string>> {
-        throw new Error("Method not implemented.");
+    async deleteFollow(follwerId: string, followingId: string): Promise<Array<string>> {
+        await FollowModel.findOneAndDelete({ follwerId, followingId });
+        const results = await FollowModel.find({ follwerId });
+        return results.map(f => f.followingId);
     }
 }

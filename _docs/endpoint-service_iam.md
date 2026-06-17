@@ -1,7 +1,7 @@
 # Endpoints IAM
 
 > Service : IAM Service  
-> Dernière mise à jour : 2026-06-12
+> Dernière mise à jour : 2026-06-16
 
 ---
 
@@ -43,7 +43,7 @@ Body JSON (`CreateUserDTO`) :
 |-------|------|--------|-------------|
 | `username` | `string` | oui | Nom d'utilisateur unique |
 | `password` | `string` | oui | Mot de passe en clair (hashé en base) |
-| `role` | `string` | non | Rôle (défaut : `"user"`) |
+| `role` | `'user' \| 'moderator' \| 'admin'` | non | Rôle (défaut : `"user"`) |
 
 Réponse `201` : objet `UserDTO`
 
@@ -58,6 +58,8 @@ Réponse `201` : objet `UserDTO`
 ```
 
 Erreur `409` si le `username` est déjà pris.
+
+Erreur `400` si `role` n'est pas une valeur valide (`user`, `moderator`, `admin`).
 
 ---
 

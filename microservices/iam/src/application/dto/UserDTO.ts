@@ -1,9 +1,10 @@
 import { User } from '../../domain/entities/User';
+import { Role } from '../../domain/entities/Role';
 
 export interface UserDTO {
     id: number;
     username: string;
-    role: string;
+    role: Role;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -31,9 +31,13 @@ export class UserController implements IController {
     }
 
     private async register(req: any, res: any): Promise<void> {
-        const result = await this.registerUseCase.execute(req.body);
-        if (!result) return res.status(409).json({ message: 'Username already exists' });
-        res.status(201).json(result);
+        try {
+            const result = await this.registerUseCase.execute(req.body);
+            if (!result) return res.status(409).json({ message: 'Username already exists' });
+            res.status(201).json(result);
+        } catch (err) {
+            res.status(400).json({ message: (err as Error).message });
+        }
     }
 
     private async validate(req: any, res: any): Promise<void> {

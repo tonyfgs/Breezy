@@ -62,6 +62,9 @@ docker compose -f docker-compose.dev.yml up posts posts-db
 
 # Uniquement le service IAM et sa base
 docker compose -f docker-compose.dev.yml up iam iam-db
+
+# Uniquement le service User et sa base
+docker compose -f docker-compose.dev.yml up users users-db
 ```
 
 ---

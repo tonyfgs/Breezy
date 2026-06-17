@@ -11,7 +11,7 @@ import {ProfileDTO} from "../../application/dto/ProfileDTO";
 export class ProfileController implements IController{
 
     public readonly path: string= '/users/';
-    public readonly router = Router();
+    public readonly router: Router = Router();
 
     private createProfileUseCase: CreateProfileUseCase;
     private deleteProfileUseCase: DeleteProfileUseCase;
@@ -38,6 +38,12 @@ export class ProfileController implements IController{
 
         // Create Profile
         this.router.post(`/`, this.createProfile.bind(this));
+
+        // Delete Profile
+        this.router.delete(`/:id`, this.deleteProfile.bind(this));
+
+        // Update Profile
+        this.router.patch(`/:id`, this.updateProfile.bind(this));
     }
 
     private async getAllProfiles(_req: any, res: any): Promise<void> {
@@ -56,19 +62,20 @@ export class ProfileController implements IController{
     private async deleteProfile(req: any, res: any): Promise<void> {
         const id = req.params.id;
         await this.deleteProfileUseCase.execute(id);
+        res.status(200).json({ message: 'Profile deleted successfully' });
     }
 
     private async getProfile(req: any, res: any): Promise<void> {
         const id: string = req.params.id;
         const profile: ProfileDTO = await this.getProfileUseCase.execute(id);
-        res.status(201).json(profile);
+        res.status(200).json(profile);
     }
 
     private async updateProfile(req: any, res: any): Promise<any> {
         const id = req.params.id;
         const profile = req.body;
         const updatedProfile = await this.updateProfileUseCase.execute(id, profile);
-        return updatedProfile;
+        res.status(200).json(updatedProfile);
     }
 
 

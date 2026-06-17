@@ -30,12 +30,18 @@ export class ProfileRepository implements IProfileRepository{
         return ProfileMapper.toDomain(result);
     }
 
-    deleteProfile(id: string): Promise<void> {
-        throw new Error('Not implemented');
+    async deleteProfile(id: string): Promise<void> {
+        const result = await ProfileModel.findByIdAndDelete(id);
+        if (!result) throw new Error(`Profile not found: ${id}`);
     }
 
-
-    patchProfile(id: string, profile: Profile): Promise<Profile> {
-        throw new Error('Not implemented');
+    async patchProfile(id: string, profile: Partial<Profile>): Promise<Profile> {
+        const result = await ProfileModel.findByIdAndUpdate(
+            id,
+            { ...profile, updatedAt: new Date() },
+            { new: true, runValidators: true }
+        );
+        if (!result) throw new Error(`Profile not found: ${id}`);
+        return ProfileMapper.toDomain(result);
     }
 }

@@ -12,6 +12,7 @@ export class PostMapper {
             doc.mentionsList,
             doc._id.toString()
         );
+        post.fl_banned = doc.fl_banned;
         post.createdAt = doc.createdAt;
         post.updatedAt = doc.updatedAt;
         return post;

@@ -1,5 +1,4 @@
 import {IProfileRepository} from "../../domain/repositories/IProfileRepository";
-import {Profiler} from "node:inspector";
 import {Profile} from "../../domain/entities/Profile";
 import {ProfileMapper} from "../mapper/profileMapper";
 import {ProfileModel} from "../models/ProfileModel";
@@ -35,11 +34,11 @@ export class ProfileRepository implements IProfileRepository{
         if (!result) throw new Error(`Profile not found: ${id}`);
     }
 
-    async patchProfile(id: string, profile: Partial<Profile>): Promise<Profile> {
+    async patchProfile(id: string, data: Partial<Profile>): Promise<Profile> {
         const result = await ProfileModel.findByIdAndUpdate(
             id,
-            { ...profile, updatedAt: new Date() },
-            { new: true, runValidators: true }
+            { ...data, updatedAt: new Date() },
+            { new: true }
         );
         if (!result) throw new Error(`Profile not found: ${id}`);
         return ProfileMapper.toDomain(result);

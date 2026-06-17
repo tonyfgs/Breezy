@@ -127,7 +127,36 @@ services:
       - PORT=4004
       - NODE_ENV=development
 
+  moderation:
+    build:
+      context: ./microservices/moderation
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/moderation:/app
+      - /app/node_modules
+    ports:
+      - "4006:4006"
+    environment:
+      - PORT=4006
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://moderation-db:27017/breezy-moderation
+      - USERS_SERVICE_URL=http://users:4002
+      - POSTS_SERVICE_URL=http://posts:4003
+    depends_on:
+      - moderation-db
+      - users
+      - posts
+
+  moderation-db:
+    image: mongo:7
+    command: mongod --quiet --setParameter logLevel=0
+    ports:
+      - "27020:27017"
+    volumes:
+      - moderation_data:/data/db
+
 volumes:
   iam_data:
   posts_data:
   users_data:
+  moderation_data:

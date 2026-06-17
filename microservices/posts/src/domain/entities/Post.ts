@@ -6,6 +6,7 @@ export class Post {
     tagsList: string[];
     mediaList: string[];
     mentionsList: string[];
+    fl_banned: number;
     createdAt: Date;
     updatedAt: Date;
 
@@ -25,6 +26,7 @@ export class Post {
         this.tagsList = tagsList;
         this.mediaList = mediaList;
         this.mentionsList = mentionsList;
+        this.fl_banned = 0;
         this.createdAt = new Date();
         this.updatedAt = new Date();
     }

@@ -95,6 +95,8 @@ Body JSON (tous les champs sont optionnels) :
 
 Réponse `200` : objet `ProfileDTO` mis à jour
 
+Erreur `404` si le profil n'existe pas.
+
 > Utilisé par le service modération pour mettre à jour `fl_banned` lors d'un ban ou d'une révocation.
 
 ---

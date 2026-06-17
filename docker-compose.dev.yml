@@ -101,19 +101,6 @@ services:
     volumes:
       - posts_data:/data/db
 
-  notifications:
-    build:
-      context: ./microservices/notifications
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./microservices/notifications:/app
-      - /app/node_modules
-    ports:
-      - "4004:4004"
-    environment:
-      - PORT=4004
-      - NODE_ENV=development
-
   moderation:
     build:
       context: ./microservices/moderation

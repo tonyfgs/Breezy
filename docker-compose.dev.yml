@@ -122,9 +122,9 @@ services:
       - ./microservices/moderation:/app
       - /app/node_modules
     ports:
-      - "4006:4006"
+      - "4005:4005"
     environment:
-      - PORT=4006
+      - PORT=4005
       - NODE_ENV=development
       - MONGODB_URI=mongodb://moderation-db:27017/breezy-moderation
       - USERS_SERVICE_URL=http://users:4002

@@ -14,7 +14,7 @@
 | `users` | 4002 | 4002 | Express |
 | `posts` | 4003 | 4003 | Express |
 | `notifications` | 4004 | 4004 | Express |
-| `moderation` | 4006 | 4006 | Express |
+| `moderation` | 4005 | 4005 | Express |
 
 ---
 

@@ -31,7 +31,7 @@ Body JSON :
 
 Réponse `201` : objet `ReportDTO`
 
-Erreur `400` si `targetType` invalide.
+Erreur `500` en cas d'erreur serveur.
 
 ---
 
@@ -102,8 +102,8 @@ Réponse `201` : objet `SanctionDTO`
 
 Effet de bord : appelle `PATCH /users/:id` ou `PATCH /posts/:id` pour passer `fl_banned` à `1`.
 
-Erreur `400` si `targetType` invalide.  
-Erreur `409` si une sanction active existe déjà pour cette cible.
+Erreur `409` si une sanction active existe déjà pour cette cible.  
+Erreur `500` en cas d'erreur serveur (BanService inaccessible, etc.).
 
 ---
 

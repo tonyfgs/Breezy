@@ -8,6 +8,7 @@ export interface PostDTO {
     tagsList: string[];
     mediaList: string[];
     mentionsList: string[];
+    fl_banned: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -29,6 +30,7 @@ export function toDTO(post: Post): PostDTO {
         tagsList: post.tagsList,
         mediaList: post.mediaList,
         mentionsList: post.mentionsList,
+        fl_banned: post.fl_banned,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
     };

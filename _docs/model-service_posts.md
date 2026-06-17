@@ -3,7 +3,7 @@
 > Service : Posts Service  
 > Base de données : MongoDB  
 > Collections : `posts`, `likes`  
-> Dernière mise à jour : 2026-06-15
+> Dernière mise à jour : 2026-06-17
 
 ---
 
@@ -21,6 +21,7 @@ Stocke à la fois les posts de premier niveau et les commentaires. Un document a
 | `mentionsList` | `[String]` | Non | `[]` | IDs des utilisateurs mentionnés (référence externe vers le service users) |
 | `createdAt` | `Date` | Non | `Date.now` | Date de création |
 | `updatedAt` | `Date` | Non | `Date.now` | Date de dernière modification |
+| `fl_banned` | `Number` | Non | `0` | Statut de bannissement : `0` = actif, `1` = banni (mis à jour par le service modération) |
 
 ---
 

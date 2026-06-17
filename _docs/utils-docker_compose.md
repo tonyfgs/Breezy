@@ -21,9 +21,10 @@
 | `api-gateway` | 4000 | — | — | — |
 | `iam` | 4001 | PostgreSQL | `iam-db` | 5433 |
 | `users` | 4002 | MongoDB | `users-db` | 27018 |
-| `posts` | 4003 | MongoDB | `posts-db` | 27017 |
+| `posts` | 4003 | MongoDB | `posts-db` | 27019 |
 | `notifications` | 4004 | — | — | — |
 | `test-private` | 4005 | — | — | — |
+| `moderation` | 4006 | MongoDB | `moderation-db` | 27020 |
 
 ---
 

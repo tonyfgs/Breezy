@@ -1,7 +1,7 @@
 # Endpoints Posts
 
 > Service : Posts Service  
-> Dernière mise à jour : 2026-06-15
+> Dernière mise à jour : 2026-06-17
 
 ---
 
@@ -19,6 +19,7 @@ Port par défaut : `4003` (env `PORT`)
 | `GET` | `/posts/:id/comments` | Récupère les commentaires d'un post, paginés |
 | `POST` | `/posts` | Crée un post ou un commentaire |
 | `PUT` | `/posts/:id` | Modifie le contenu d'un post |
+| `PATCH` | `/posts/:id` | Met à jour les champs partiels d'un post |
 | `DELETE` | `/posts/:id` | Supprime un post |
 
 ### GET `/posts`
@@ -41,6 +42,7 @@ Réponse `200` : objet `PaginatedPostsDTO`
       "tagsList": [],
       "mediaList": [],
       "mentionsList": [],
+      "fl_banned": 0,
       "createdAt": "Date",
       "updatedAt": "Date"
     }
@@ -73,6 +75,7 @@ Réponse `200` : objet `PostDTO`
   "tagsList": [],
   "mediaList": [],
   "mentionsList": [],
+  "fl_banned": 0,
   "createdAt": "Date",
   "updatedAt": "Date"
 }
@@ -164,6 +167,26 @@ Réponse `200` : objet `PostDTO` mis à jour
 
 ---
 
+### PATCH `/posts/:id`
+
+| Paramètre | Emplacement | Type | Requis | Description |
+|-----------|-------------|------|--------|-------------|
+| `id` | path | `string` | oui | ID MongoDB du post |
+
+Body JSON (tous les champs sont optionnels) :
+
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| `fl_banned` | `number` | non | `0` = actif, `1` = banni — mis à jour par le service modération |
+
+Réponse `200` : objet `PostDTO` mis à jour
+
+Erreur `404` si le post n'existe pas.
+
+> Utilisé par le service modération pour mettre à jour `fl_banned` lors d'un ban ou d'une révocation.
+
+---
+
 ### DELETE `/posts/:id`
 
 | Paramètre | Emplacement | Type | Requis | Description |
@@ -171,6 +194,8 @@ Réponse `200` : objet `PostDTO` mis à jour
 | `id` | path | `string` | oui | ID MongoDB du post |
 
 Réponse `204` : aucun contenu
+
+Erreur `404` si le post n'existe pas.
 
 ---
 

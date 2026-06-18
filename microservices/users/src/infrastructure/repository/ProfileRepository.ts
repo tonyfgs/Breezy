@@ -34,6 +34,11 @@ export class ProfileRepository implements IProfileRepository{
         if (!result) throw new Error(`Profile not found: ${id}`);
     }
 
+    async deleteProfileByUsername(username: string): Promise<void> {
+        const result = await ProfileModel.findOneAndDelete({ username });
+        if (!result) throw new Error(`Profile not found for username: ${username}`);
+    }
+
     async patchProfile(id: string, data: Partial<Profile>): Promise<Profile> {
         const result = await ProfileModel.findByIdAndUpdate(
             id,

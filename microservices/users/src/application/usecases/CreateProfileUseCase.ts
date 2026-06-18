@@ -14,7 +14,7 @@ export class CreateProfileUseCase {
     async execute(profile: CreateProfileDTO): Promise<ProfileDTO | null> {
         const profileExists = await this.profileRepository.getByUsername(profile.username);
         if (profileExists) return null;
-        const newProfile = new Profile(profile.username, profile.bio, profile.avatar);
+        const newProfile = new Profile(profile.username, profile.bio ?? null, profile.avatar ?? null);
         const val = await this.profileRepository.createProfile(newProfile);
         return toDTO(val);
     }

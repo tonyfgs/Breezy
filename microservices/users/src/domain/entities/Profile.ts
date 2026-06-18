@@ -1,13 +1,13 @@
 export class Profile {
     id?: string;
     username: string;
-    bio: string;
-    avatar: string;
+    bio: string | null;
+    avatar: string | null;
     fl_banned: number;
     createdAt: Date;
     updatedAt: Date;
 
-    constructor(username: string, bio: string, avatar: string, id?: string) {
+    constructor(username: string, bio: string | null, avatar: string | null, id?: string) {
         this.id = id;
         this.username = username;
         this.bio = bio;

@@ -3,8 +3,8 @@ import {Profile} from "../../domain/entities/Profile";
 export interface ProfileDTO {
     id: string;
     username: string;
-    bio: string;
-    avatar: string;
+    bio: string | null;
+    avatar: string | null;
     fl_banned: number;
     createdAt: Date;
     updatedAt: Date;

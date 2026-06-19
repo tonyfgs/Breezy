@@ -21,9 +21,8 @@
 | `api-gateway` | 4000 | — | — | — |
 | `iam` | 4001 | PostgreSQL | `iam-db` | 5433 |
 | `users` | 4002 | MongoDB | `users-db` | 27018 |
-| `posts` | 4003 | MongoDB | `posts-db` | 27017 |
-| `notifications` | 4004 | — | — | — |
-| `test-private` | 4005 | — | — | — |
+| `posts` | 4003 | MongoDB | `posts-db` | 27019 |
+| `moderation` | 4005 | MongoDB | `moderation-db` | 27020 |
 
 ---
 
@@ -54,14 +53,15 @@ docker compose -f docker-compose.dev.yml up --build
 # NGINX + IAM + sa base
 docker compose -f docker-compose.dev.yml up api-gateway iam iam-db
 
-# NGINX + IAM + Posts + leurs bases + test-private
-docker compose -f docker-compose.dev.yml up -d api-gateway iam iam-db posts posts-db test-private
 
 # Uniquement le service Posts et sa base
 docker compose -f docker-compose.dev.yml up posts posts-db
 
 # Uniquement le service IAM et sa base
 docker compose -f docker-compose.dev.yml up iam iam-db
+
+# Uniquement le service User et sa base
+docker compose -f docker-compose.dev.yml up users users-db
 ```
 
 ---

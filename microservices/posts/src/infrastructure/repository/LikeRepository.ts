@@ -14,6 +14,10 @@ export class LikeRepository implements ILikeRepository {
         return { likes: results.map(LikeMapper.toDomain), total };
     }
 
+    async countLikesByPost(postId: string): Promise<number> {
+        return LikeModel.countDocuments({ postId });
+    }
+
     async getLike(postId: string, userId: string): Promise<Like | null> {
         const result = await LikeModel.findOne({ postId, userId });
         if (!result) return null;

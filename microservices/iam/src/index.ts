@@ -5,6 +5,9 @@ import { RegisterUseCase } from './application/usecases/RegisterUseCase';
 import { LoginUseCase } from './application/usecases/LoginUseCase';
 import { UserController } from './interfaces/controllers/UserController';
 import { IController } from './interfaces/controllers/IController';
+import { UserProfileService } from './infrastructure/services/UserProfileService';
+import { GetAllUsersUseCase } from './application/usecases/GetAllUsersUseCase';
+import { DeleteUserUseCase } from './application/usecases/DeleteUserUseCase';
 import 'dotenv/config';
 
 const PORT = process.env.PORT || 3001;
@@ -12,9 +15,12 @@ const PORT = process.env.PORT || 3001;
 const controllerTable = new Array<IController>();
 
 const userRepository = new UserRepository();
+const userProfileService = new UserProfileService();
 const userController = new UserController(
     new LoginUseCase(userRepository),
-    new RegisterUseCase(userRepository)
+    new RegisterUseCase(userRepository, userProfileService),
+    new GetAllUsersUseCase(userRepository),
+    new DeleteUserUseCase(userRepository, userProfileService)
 );
 
 controllerTable.push(userController);

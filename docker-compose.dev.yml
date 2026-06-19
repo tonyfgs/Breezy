@@ -22,19 +22,6 @@ services:
       - "4000:80"
     depends_on:
       - iam
-      - test-private
-
-  test-private:
-    build:
-      context: ./microservices/test-private
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./microservices/test-private:/app
-      - /app/node_modules
-    ports:
-      - "4005:3000"
-    environment:
-      - PORT=3000
 
   iam:
     build:
@@ -114,20 +101,36 @@ services:
     volumes:
       - posts_data:/data/db
 
-  notifications:
+  moderation:
     build:
-      context: ./microservices/notifications
+      context: ./microservices/moderation
       dockerfile: Dockerfile.dev
     volumes:
-      - ./microservices/notifications:/app
+      - ./microservices/moderation:/app
       - /app/node_modules
     ports:
-      - "4004:4004"
+      - "4005:4005"
     environment:
-      - PORT=4004
+      - PORT=4005
       - NODE_ENV=development
+      - MONGODB_URI=mongodb://moderation-db:27017/breezy-moderation
+      - USERS_SERVICE_URL=http://users:4002
+      - POSTS_SERVICE_URL=http://posts:4003
+    depends_on:
+      - moderation-db
+      - users
+      - posts
+
+  moderation-db:
+    image: mongo:7
+    command: mongod --quiet --setParameter logLevel=0
+    ports:
+      - "27020:27017"
+    volumes:
+      - moderation_data:/data/db
 
 volumes:
   iam_data:
   posts_data:
   users_data:
+  moderation_data:

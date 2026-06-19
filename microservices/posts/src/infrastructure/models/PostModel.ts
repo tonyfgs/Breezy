@@ -7,6 +7,7 @@ export interface IPostDocument extends Document {
     tagsList: string[];
     mediaList: string[];
     mentionsList: string[];
+    fl_banned: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -18,6 +19,7 @@ const PostSchema = new Schema<IPostDocument>({
     tagsList: { type: [String], default: [] },
     mediaList: { type: [String], default: [] },
     mentionsList: { type: [String], default: [] },
+    fl_banned: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });

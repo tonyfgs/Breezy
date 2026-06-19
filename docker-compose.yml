@@ -18,7 +18,6 @@ services:
       - iam
       - users
       - posts
-      - notifications
 
   iam:
     build:
@@ -78,15 +77,6 @@ services:
     image: mongo:7
     volumes:
       - posts_data:/data/db
-
-  notifications:
-    build:
-      context: ./microservices/notifications
-    ports:
-      - "4004:4004"
-    environment:
-      - PORT=4004
-      - NODE_ENV=production
 
 volumes:
   iam_data:

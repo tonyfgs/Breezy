@@ -1,5 +1,4 @@
 import {IProfileRepository} from "../../domain/repositories/IProfileRepository";
-import {Profiler} from "node:inspector";
 import {Profile} from "../../domain/entities/Profile";
 import {ProfileMapper} from "../mapper/profileMapper";
 import {ProfileModel} from "../models/ProfileModel";
@@ -30,12 +29,23 @@ export class ProfileRepository implements IProfileRepository{
         return ProfileMapper.toDomain(result);
     }
 
-    deleteProfile(id: string): Promise<void> {
-        throw new Error('Not implemented');
+    async deleteProfile(id: string): Promise<void> {
+        const result = await ProfileModel.findByIdAndDelete(id);
+        if (!result) throw new Error(`Profile not found: ${id}`);
     }
 
+    async deleteProfileByUsername(username: string): Promise<void> {
+        const result = await ProfileModel.findOneAndDelete({ username });
+        if (!result) throw new Error(`Profile not found for username: ${username}`);
+    }
 
-    patchProfile(id: string, profile: Profile): Promise<Profile> {
-        throw new Error('Not implemented');
+    async patchProfile(id: string, data: Partial<Profile>): Promise<Profile> {
+        const result = await ProfileModel.findByIdAndUpdate(
+            id,
+            { ...data, updatedAt: new Date() },
+            { new: true }
+        );
+        if (!result) throw new Error(`Profile not found: ${id}`);
+        return ProfileMapper.toDomain(result);
     }
 }

@@ -203,9 +203,27 @@ Erreur `404` si le post n'existe pas.
 
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
+| `GET` | `/posts/:postId/likes/count` | Retourne le nombre de likes d'un post |
 | `GET` | `/posts/:postId/likes` | Récupère les likes d'un post |
 | `POST` | `/posts/:postId/likes` | Like un post |
 | `DELETE` | `/posts/:postId/likes/:userId` | Retire le like d'un utilisateur |
+
+### GET `/posts/:postId/likes/count`
+
+| Paramètre | Emplacement | Type | Requis | Description |
+|-----------|-------------|------|--------|-------------|
+| `postId` | path | `string` | oui | ID MongoDB du post |
+
+Réponse `200` :
+
+```json
+{
+  "postId": "string",
+  "likeCount": 42
+}
+```
+
+---
 
 ### GET `/posts/:postId/likes`
 

@@ -1,5 +1,5 @@
 import {PostEntity} from "../entities/PostEntity";
 
 export interface IPostGateway {
-    getPostsByAuthorsIds(userId: Array<string>): Promise<Array<PostEntity>>;
+    getPostsByAuthorsIds(userIds: string[], limit: number, cursor?: string): Promise<{ posts: PostEntity[]; nextCursor?: string }>;
 }

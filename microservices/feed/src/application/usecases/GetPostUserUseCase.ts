@@ -1,4 +1,5 @@
 import {IPostGateway} from "../../domain/gateway/IPostGateway";
+import {PostEntity} from "../../domain/entities/PostEntity";
 
 export class GetPostUserUseCase {
     private readonly postGateway: IPostGateway;
@@ -6,7 +7,7 @@ export class GetPostUserUseCase {
         this.postGateway = repository;
     }
 
-    execute(id: Array<string>) {
-        this.postGateway.getPostsByAuthorsIds(id);
+    async execute(authorIds: Array<string>, limit: number = 20, cursor?: string): Promise<{ posts: PostEntity[]; nextCursor?: string }> {
+        return this.postGateway.getPostsByAuthorsIds(authorIds, limit, cursor);
     }
 }

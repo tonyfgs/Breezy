@@ -24,4 +24,6 @@ const PostSchema = new Schema<IPostDocument>({
     updatedAt: { type: Date, default: Date.now },
 });
 
+PostSchema.index({ authorId: 1, createdAt: -1 });
+
 export const PostModel = mongoose.model<IPostDocument>('Post', PostSchema);

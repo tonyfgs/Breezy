@@ -52,6 +52,17 @@ export class PostRepository implements IPostRepository {
         return PostMapper.toDomain(result);
     }
 
+    async getPostsByAuthors(authorIds: string[], limit: number, cursor?: string): Promise<{ posts: Post[]; nextCursor: string | null }> {
+        const filter: Record<string, any> = { authorId: { $in: authorIds }, parentPostId: null };
+        if (cursor) {
+            filter.createdAt = { $lt: new Date(cursor) };
+        }
+        const results = await PostModel.find(filter).sort({ createdAt: -1 }).limit(limit);
+        const posts = results.map(PostMapper.toDomain);
+        const nextCursor = posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
+        return { posts, nextCursor };
+    }
+
     async deletePost(id: string): Promise<void> {
         await PostModel.findByIdAndDelete(id);
     }

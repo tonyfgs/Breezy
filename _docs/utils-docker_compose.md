@@ -29,7 +29,7 @@
 ## Stack complète
 
 ```bash
-# Démarrer tous les services (dev)
+# Démarrer tous les gateway (dev)
 docker compose -f docker-compose.dev.yml up
 
 # Démarrer en arrière-plan
@@ -80,7 +80,7 @@ docker compose down -v      # Arrêter et supprimer les données
 ## Logs
 
 ```bash
-# Logs de tous les services
+# Logs de tous les gateway
 docker compose -f docker-compose.dev.yml logs
 
 # Logs d'un service en temps réel

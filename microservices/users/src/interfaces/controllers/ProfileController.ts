@@ -2,6 +2,7 @@ import {CreateProfileUseCase} from "../../application/usecases/CreateProfileUseC
 import {DeleteProfileUseCase} from "../../application/usecases/DeleteProfileUseCase";
 import {DeleteProfileByUsernameUseCase} from "../../application/usecases/DeleteProfileByUsernameUseCase";
 import {GetProfileUseCase} from "../../application/usecases/GetProfileUseCase";
+import {GetProfileByUsernameUseCase} from "../../application/usecases/GetProfileByUsernameUseCase";
 import {GetAllProfilesUseCase} from "../../application/usecases/GetAllProfilesUseCase";
 import {UpdateProfileUseCase} from "../../application/usecases/UpdateProfileUseCase";
 import {IController} from "./IController";
@@ -17,14 +18,16 @@ export class ProfileController implements IController{
     private deleteProfileUseCase: DeleteProfileUseCase;
     private deleteProfileByUsernameUseCase: DeleteProfileByUsernameUseCase;
     private getProfileUseCase: GetProfileUseCase;
+    private getProfileByUsernameUseCase: GetProfileByUsernameUseCase;
     private getAllProfilesUseCase: GetAllProfilesUseCase;
     private updateProfileUseCase: UpdateProfileUseCase;
 
-    constructor(getProfileUseCase: GetProfileUseCase, createProfileUseCase: CreateProfileUseCase, deleteProfileUseCase: DeleteProfileUseCase, updateProfileUseCase: UpdateProfileUseCase, getAllProfilesUseCase: GetAllProfilesUseCase, deleteProfileByUsernameUseCase: DeleteProfileByUsernameUseCase) {
+    constructor(getProfileUseCase: GetProfileUseCase, createProfileUseCase: CreateProfileUseCase, deleteProfileUseCase: DeleteProfileUseCase, updateProfileUseCase: UpdateProfileUseCase, getAllProfilesUseCase: GetAllProfilesUseCase, deleteProfileByUsernameUseCase: DeleteProfileByUsernameUseCase, getProfileByUsernameUseCase: GetProfileByUsernameUseCase) {
         this.getProfileUseCase = getProfileUseCase;
         this.createProfileUseCase = createProfileUseCase;
         this.deleteProfileUseCase = deleteProfileUseCase;
         this.deleteProfileByUsernameUseCase = deleteProfileByUsernameUseCase;
+        this.getProfileByUsernameUseCase = getProfileByUsernameUseCase;
         this.updateProfileUseCase = updateProfileUseCase;
         this.getAllProfilesUseCase = getAllProfilesUseCase;
         this.initialiseRoutes();
@@ -32,6 +35,7 @@ export class ProfileController implements IController{
 
     private initialiseRoutes() {
         this.router.get(`/`, this.getAllProfiles.bind(this));
+        this.router.get(`/username/:username`, this.getProfileByUsername.bind(this));
         this.router.get(`/:id`, this.getProfile.bind(this));
         this.router.post(`/`, this.createProfile.bind(this));
         this.router.delete(`/username/:username`, this.deleteProfileByUsername.bind(this));
@@ -65,6 +69,15 @@ export class ProfileController implements IController{
         try {
             await this.deleteProfileByUsernameUseCase.execute(req.params.username);
             res.status(200).json({ message: 'Profile deleted successfully' });
+        } catch (err: any) {
+            res.status(404).json({ message: err.message });
+        }
+    }
+
+    private async getProfileByUsername(req: any, res: any): Promise<void> {
+        try {
+            const profile = await this.getProfileByUsernameUseCase.execute(req.params.username);
+            res.status(200).json(profile);
         } catch (err: any) {
             res.status(404).json({ message: err.message });
         }

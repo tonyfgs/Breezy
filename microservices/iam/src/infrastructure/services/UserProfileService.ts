@@ -17,6 +17,13 @@ export class UserProfileService {
         }
     }
 
+    async getProfileId(username: string): Promise<string> {
+        const response = await fetch(`${this.usersUrl}/users/username/${username}`);
+        if (!response.ok) throw new Error(`Failed to get profile for ${username}: ${response.status}`);
+        const profile = await response.json() as { id: string };
+        return profile.id;
+    }
+
     async deleteProfile(username: string): Promise<void> {
         const response = await fetch(`${this.usersUrl}/users/username/${username}`, {
             method: 'DELETE',

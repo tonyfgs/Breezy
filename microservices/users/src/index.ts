@@ -7,6 +7,7 @@ import { DeleteProfileUseCase } from './application/usecases/DeleteProfileUseCas
 import { DeleteProfileByUsernameUseCase } from './application/usecases/DeleteProfileByUsernameUseCase';
 import { UpdateProfileUseCase } from './application/usecases/UpdateProfileUseCase';
 import { GetAllProfilesUseCase } from './application/usecases/GetAllProfilesUseCase';
+import { GetProfileByUsernameUseCase } from './application/usecases/GetProfileByUsernameUseCase';
 import { ProfileController } from './interfaces/controllers/ProfileController';
 import { FollowRepository } from './infrastructure/repository/FollowRepository';
 import { CreateFollowUseCase } from './application/usecases/CreateFollowUseCase';
@@ -31,7 +32,8 @@ const profileController = new ProfileController(
     new DeleteProfileUseCase(profileRepository),
     new UpdateProfileUseCase(profileRepository),
     new GetAllProfilesUseCase(profileRepository),
-    new DeleteProfileByUsernameUseCase(profileRepository)
+    new DeleteProfileByUsernameUseCase(profileRepository),
+    new GetProfileByUsernameUseCase(profileRepository),
 );
 
 controllerTable.push(profileController);

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import type {IController} from "./IController";
 import {GetFeedUseCase} from "../../application/usecases/GetFeedUseCase";
+import {FeedDto} from "../../application/dto/FeedDto";
+import {PostDTO} from "../../application/dto/PostDTO";
 
 export class FeedController implements IController {
     public readonly path = '/feed';
@@ -18,8 +20,12 @@ export class FeedController implements IController {
         try {
             const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
             const cursor = req.query.cursor as string | undefined;
-            const result = await this.getFeedUseCase.execute(req.params.idUser, limit, cursor);
-            res.status(200).json(result);
+            const { posts, nextCursor } = await this.getFeedUseCase.execute(req.params.idUser, limit, cursor);
+            const feedDto = new FeedDto(
+                posts.map(p => new PostDTO(p.id, p.authorId, p.content, p.likeCount, p.createdAt)),
+                nextCursor,
+            );
+            res.status(200).json(feedDto);
         } catch (err: any) {
             res.status(500).json({ message: err.message });
         }

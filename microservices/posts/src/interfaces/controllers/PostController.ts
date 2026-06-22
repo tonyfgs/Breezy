@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { IController } from './IController';
 import { CreatePostUseCase } from '../../application/usecases/CreatePostUseCase';
 import { GetPostUseCase } from '../../application/usecases/GetPostUseCase';
@@ -93,6 +94,9 @@ export class PostController implements IController {
 
     private async createPost(req: any, res: any): Promise<void> {
         try {
+            const token = req.headers.authorization?.split(' ')[1];
+            const decoded = jwt.decode(token) as { profileId?: string } | null;
+            if (decoded?.profileId) req.body.authorId = decoded.profileId;
             const post = await this.createPostUseCase.execute(req.body);
             res.status(201).json(post);
         } catch (err: any) {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { IController } from './IController';
 import { CreateReportUseCase } from '../../application/usecases/CreateReportUseCase';
 import { GetReportUseCase } from '../../application/usecases/GetReportUseCase';
@@ -27,6 +28,9 @@ export class ReportController implements IController {
 
     private async createReport(req: any, res: any): Promise<void> {
         try {
+            const token = req.headers.authorization?.split(' ')[1];
+            const decoded = jwt.decode(token) as { profileId?: string } | null;
+            if (decoded?.profileId) req.body.reporterId = decoded.profileId;
             const report = await this.createReportUseCase.execute(req.body);
             res.status(201).json(report);
         } catch (err: any) {

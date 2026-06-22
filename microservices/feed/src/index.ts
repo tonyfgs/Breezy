@@ -16,7 +16,7 @@ import {IPostGateway} from "./domain/gateway/IPostGateway";
 const PORT = process.env.PORT || 4004;
 
 const httpPostGateway: IPostGateway = new HttpPostGateway(process.env.BASE_URL_POSTS || 'http://posts:4003');
-const httpUserGateway: IUserGateway = new HttpUserGateway(process.env.BASE_URL_USERS || 'http://users:4001');
+const httpUserGateway: IUserGateway = new HttpUserGateway(process.env.BASE_URL_USERS || 'http://users:4002');
 const httpModerationGateway: IModerationGateway = new MockModerationGateway(process.env.BASE_URL_MODERATION || 'http://moderation:4005');
 
 

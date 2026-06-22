@@ -5,6 +5,7 @@ import { GetPostUseCase } from '../../application/usecases/GetPostUseCase';
 import { GetAllPostsUseCase } from '../../application/usecases/GetAllPostsUseCase';
 import { GetPostCommentsUseCase } from '../../application/usecases/GetPostCommentsUseCase';
 import { GetPostsByUserUseCase } from '../../application/usecases/GetPostsByUserUseCase';
+import { GetPostsByAuthorsUseCase } from '../../application/usecases/GetPostsByAuthorsUseCase';
 import { UpdatePostUseCase } from '../../application/usecases/UpdatePostUseCase';
 import { DeletePostUseCase } from '../../application/usecases/DeletePostUseCase';
 
@@ -20,6 +21,7 @@ export class PostController implements IController {
         private readonly getPostsByUserUseCase: GetPostsByUserUseCase,
         private readonly updatePostUseCase: UpdatePostUseCase,
         private readonly deletePostUseCase: DeletePostUseCase,
+        private readonly getPostsByAuthorsUseCase: GetPostsByAuthorsUseCase,
     ) {
         this.initialiseRoutes();
     }
@@ -29,6 +31,7 @@ export class PostController implements IController {
         this.router.get('/user/:userId', this.getPostsByUser.bind(this));
         this.router.get('/:id', this.getPost.bind(this));
         this.router.get('/:id/comments', this.getComments.bind(this));
+        this.router.post('/by-authors', this.getPostsByAuthors.bind(this));
         this.router.post('/', this.createPost.bind(this));
         this.router.put('/:id', this.updatePost.bind(this));
         this.router.patch('/:id', this.patchPost.bind(this));
@@ -74,6 +77,17 @@ export class PostController implements IController {
             res.status(200).json(result);
         } catch (err: any) {
             res.status(404).json({ message: err.message });
+        }
+    }
+
+    private async getPostsByAuthors(req: any, res: any): Promise<void> {
+        try {
+            const { authorIds, limit, cursor } = req.body;
+            const parsedLimit = Math.min(100, Math.max(1, parseInt(limit) || 20));
+            const result = await this.getPostsByAuthorsUseCase.execute(authorIds, parsedLimit, cursor);
+            res.status(200).json(result);
+        } catch (err: any) {
+            res.status(500).json({ message: err.message });
         }
     }
 

@@ -138,6 +138,7 @@ services:
       - MONGODB_URI=mongodb://moderation-db:27017/breezy-moderation
       - USERS_SERVICE_URL=http://users:4002
       - POSTS_SERVICE_URL=http://posts:4003
+      - JWT_SECRET=secret
     depends_on:
       - moderation-db
       - users

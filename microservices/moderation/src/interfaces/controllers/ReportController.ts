@@ -5,6 +5,8 @@ import { CreateReportUseCase } from '../../application/usecases/CreateReportUseC
 import { GetReportUseCase } from '../../application/usecases/GetReportUseCase';
 import { GetAllReportsUseCase } from '../../application/usecases/GetAllReportsUseCase';
 import { UpdateReportUseCase } from '../../application/usecases/UpdateReportUseCase';
+import { authenticate } from '../middlewares/authMiddleware';
+import { requireRole } from '../middlewares/roleMiddleware';
 
 export class ReportController implements IController {
     public readonly path = '/reports';
@@ -20,10 +22,10 @@ export class ReportController implements IController {
     }
 
     private initialiseRoutes() {
-        this.router.post('/', this.createReport.bind(this));
-        this.router.get('/', this.getAllReports.bind(this));
-        this.router.get('/:id', this.getReport.bind(this));
-        this.router.patch('/:id', this.updateReport.bind(this));
+        this.router.post('/', authenticate, this.createReport.bind(this));
+        this.router.get('/', authenticate, requireRole(['Moderateur', 'Admin']), this.getAllReports.bind(this));
+        this.router.get('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.getReport.bind(this));
+        this.router.patch('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.updateReport.bind(this));
     }
 
     private async createReport(req: any, res: any): Promise<void> {

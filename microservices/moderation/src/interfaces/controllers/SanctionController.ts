@@ -4,6 +4,8 @@ import { CreateSanctionUseCase } from '../../application/usecases/CreateSanction
 import { GetSanctionUseCase } from '../../application/usecases/GetSanctionUseCase';
 import { GetAllSanctionsUseCase } from '../../application/usecases/GetAllSanctionsUseCase';
 import { RevokeSanctionUseCase } from '../../application/usecases/RevokeSanctionUseCase';
+import { authenticate } from '../middlewares/authMiddleware';
+import { requireRole } from '../middlewares/roleMiddleware';
 
 export class SanctionController implements IController {
     public readonly path = '/sanctions';
@@ -19,10 +21,10 @@ export class SanctionController implements IController {
     }
 
     private initialiseRoutes() {
-        this.router.post('/', this.createSanction.bind(this));
-        this.router.get('/', this.getAllSanctions.bind(this));
-        this.router.get('/:id', this.getSanction.bind(this));
-        this.router.delete('/:id', this.revokeSanction.bind(this));
+        this.router.post('/', authenticate, requireRole(['Moderateur', 'Admin']), this.createSanction.bind(this));
+        this.router.get('/', authenticate, requireRole(['Moderateur', 'Admin']), this.getAllSanctions.bind(this));
+        this.router.get('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.getSanction.bind(this));
+        this.router.delete('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.revokeSanction.bind(this));
     }
 
     private async createSanction(req: any, res: any): Promise<void> {

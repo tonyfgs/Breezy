@@ -1,6 +1,6 @@
 # Ports des services
 
-> Dernière mise à jour : 2026-06-17
+> Dernière mise à jour : 2026-06-22
 
 ---
 
@@ -13,6 +13,7 @@
 | `iam` | 4001 | 4001 | Express |
 | `users` | 4002 | 4002 | Express |
 | `posts` | 4003 | 4003 | Express |
+| `feed` | 4004 | 4004 | Express (TypeScript) |
 | `moderation` | 4005 | 4005 | Express |
 
 ---

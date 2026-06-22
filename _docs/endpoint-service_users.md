@@ -1,7 +1,7 @@
 # Endpoints Users
 
 > Service : User Service  
-> Dernière mise à jour : 2026-06-18
+> Dernière mise à jour : 2026-06-22
 
 ---
 
@@ -138,20 +138,77 @@ Erreur `404` si le profil n'existe pas.
 
 ## Follows
 
-Le `FollowController` et le `FollowRepository` sont vides. Aucun endpoint follow n'est disponible.
+| Méthode | Chemin | Description |
+|---------|--------|-------------|
+| `POST` | `/follows/` | Crée une relation de follow |
+| `GET` | `/follows/:id/following` | Récupère les IDs des utilisateurs suivis par `:id` |
+| `GET` | `/follows/:id/followers` | Récupère les IDs des followers de `:id` |
+| `DELETE` | `/follows/` | Supprime une relation de follow |
 
-Méthodes prévues dans `IFollowRepository` :
+### POST `/follows/`
 
-| Méthode | Description |
-|---------|-------------|
-| `getFollowers(id)` | Récupère les abonnés d'un profil |
-| `getFollowing(id)` | Récupère les abonnements d'un profil |
-| `createFollow(followerId, followingId)` | Crée une relation d'abonnement |
-| `deleteFollow(followerId, followingId)` | Supprime une relation d'abonnement |
+Body JSON :
+
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| `follwerId` | `string` | oui | ID MongoDB de l'utilisateur qui suit |
+| `followingId` | `string` | oui | ID MongoDB de l'utilisateur suivi |
+
+> **Typo dans le code source** : `follwerId` (un seul `o`) — à respecter tel quel dans les requêtes.
+
+Réponse `201` : tableau des IDs suivis par `follwerId` après création
+
+```json
+["686abc...", "686def..."]
+```
+
+Erreur `400` si `follwerId` ou `followingId` est absent.
 
 ---
 
-## Problèmes notés
+### GET `/follows/:id/following`
 
-- `FollowRepository` : toutes les méthodes lèvent `"Method not implemented"`
-- `FollowController` : fichier vide
+| Paramètre | Emplacement | Type | Requis | Description |
+|-----------|-------------|------|--------|-------------|
+| `id` | path | `string` | oui | ID MongoDB de l'utilisateur |
+
+Réponse `200` : tableau des IDs des utilisateurs suivis par `:id`
+
+```json
+["686abc...", "686def..."]
+```
+
+> Utilisé par le service Feed pour construire le fil d'actualité.
+
+---
+
+### GET `/follows/:id/followers`
+
+| Paramètre | Emplacement | Type | Requis | Description |
+|-----------|-------------|------|--------|-------------|
+| `id` | path | `string` | oui | ID MongoDB de l'utilisateur |
+
+Réponse `200` : tableau des IDs des utilisateurs qui suivent `:id`
+
+```json
+["686abc...", "686def..."]
+```
+
+---
+
+### DELETE `/follows/`
+
+Body JSON :
+
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| `follwerId` | `string` | oui | ID MongoDB de l'utilisateur qui suit |
+| `followingId` | `string` | oui | ID MongoDB de l'utilisateur à ne plus suivre |
+
+Réponse `200` : tableau des IDs encore suivis par `follwerId` après suppression
+
+```json
+["686abc..."]
+```
+
+Erreur `400` si `follwerId` ou `followingId` est absent.

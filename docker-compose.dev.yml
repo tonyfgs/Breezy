@@ -101,6 +101,26 @@ services:
     volumes:
       - posts_data:/data/db
 
+  feed:
+    build:
+      context: ./microservices/feed
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./microservices/feed:/app
+      - /app/node_modules
+    ports:
+      - "4004:4004"
+    environment:
+      - PORT=4004
+      - NODE_ENV=development
+      - BASE_URL_POSTS=http://posts:4003
+      - BASE_URL_USERS=http://users:4002
+      - BASE_URL_MODERATION=http://moderation:4005
+    depends_on:
+      - posts
+      - users
+      - moderation
+
   moderation:
     build:
       context: ./microservices/moderation

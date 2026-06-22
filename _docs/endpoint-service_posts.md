@@ -1,7 +1,7 @@
 # Endpoints Posts
 
 > Service : Posts Service  
-> Dernière mise à jour : 2026-06-17
+> Dernière mise à jour : 2026-06-22
 
 ---
 
@@ -18,6 +18,7 @@ Port par défaut : `4003` (env `PORT`)
 | `GET` | `/posts/:id` | Récupère un post par son ID |
 | `GET` | `/posts/:id/comments` | Récupère les commentaires d'un post, paginés |
 | `POST` | `/posts` | Crée un post ou un commentaire |
+| `POST` | `/posts/by-authors` | Récupère les posts de plusieurs auteurs, paginés par curseur |
 | `PUT` | `/posts/:id` | Modifie le contenu d'un post |
 | `PATCH` | `/posts/:id` | Met à jour les champs partiels d'un post |
 | `DELETE` | `/posts/:id` | Supprime un post |
@@ -196,6 +197,46 @@ Erreur `404` si le post n'existe pas.
 Réponse `204` : aucun contenu
 
 Erreur `404` si le post n'existe pas.
+
+---
+
+### POST `/posts/by-authors`
+
+Récupère les posts de plusieurs auteurs avec pagination par curseur. Utilisé par le service Feed.
+
+Body JSON :
+
+| Champ | Type | Requis | Défaut | Description |
+|-------|------|--------|--------|-------------|
+| `authorIds` | `string[]` | oui | — | Liste des IDs d'auteurs |
+| `limit` | `number` | non | `20` | Nombre de posts (min : 1, max : 100) |
+| `cursor` | `string` | non | — | Date ISO 8601 — retourne les posts créés avant cette date |
+
+Réponse `200` :
+
+```json
+{
+  "posts": [
+    {
+      "id": "string",
+      "authorId": "string",
+      "content": "string",
+      "parentPostId": null,
+      "tagsList": [],
+      "mediaList": [],
+      "mentionsList": [],
+      "fl_banned": 0,
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    }
+  ],
+  "nextCursor": "2024-01-01T00:00:00.000Z"
+}
+```
+
+`nextCursor` est `null` s'il n'y a plus de résultats.
+
+> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Triés par `createdAt` décroissant.
 
 ---
 

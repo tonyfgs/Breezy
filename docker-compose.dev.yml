@@ -68,6 +68,7 @@ services:
       - PORT=4002
       - NODE_ENV=development
       - MONGODB_URI=mongodb://users-db:27017/breezy-users
+      - JWT_SECRET=secret
     depends_on:
       - users-db
 

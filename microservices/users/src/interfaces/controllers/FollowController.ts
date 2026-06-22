@@ -1,4 +1,5 @@
 import {Router} from "express";
+import jwt from 'jsonwebtoken';
 import {IController} from "./IController";
 import {CreateFollowUseCase} from "../../application/usecases/CreateFollowUseCase";
 import {GetFollowersUseCase} from "../../application/usecases/GetFollowersUseCase";
@@ -43,6 +44,10 @@ export class FollowController implements IController {
     }
 
     private async createFollow(req: any, res: any): Promise<void> {
+        const token = req.headers.authorization?.split(' ')[1];
+        const decoded = jwt.decode(token) as { profileId?: string } | null;
+        if (decoded?.profileId) req.body.follwerId = decoded.profileId;
+
         const { follwerId, followingId } = req.body;
         if (!follwerId || !followingId) {
             res.status(400).json({ message: 'follwerId and followingId are required' });
@@ -65,6 +70,10 @@ export class FollowController implements IController {
     }
 
     private async deleteFollow(req: any, res: any): Promise<void> {
+        const token = req.headers.authorization?.split(' ')[1];
+        const decoded = jwt.decode(token) as { profileId?: string } | null;
+        if (decoded?.profileId) req.body.follwerId = decoded.profileId;
+
         const { follwerId, followingId } = req.body;
         if (!follwerId || !followingId) {
             res.status(400).json({ message: 'follwerId and followingId are required' });

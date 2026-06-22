@@ -78,6 +78,21 @@ services:
     volumes:
       - posts_data:/data/db
 
+  feed:
+    build:
+      context: ./microservices/feed
+    ports:
+      - "4004:4004"
+    environment:
+      - PORT=4004
+      - NODE_ENV=production
+      - BASE_URL_POSTS=http://posts:4003
+      - BASE_URL_USERS=http://users:4002
+      - BASE_URL_MODERATION=http://moderation:4005
+    depends_on:
+      - posts
+      - users
+
 volumes:
   iam_data:
   posts_data:

@@ -23,13 +23,14 @@
 | `users` | 4002 | MongoDB | `users-db` | 27018 |
 | `posts` | 4003 | MongoDB | `posts-db` | 27019 |
 | `moderation` | 4005 | MongoDB | `moderation-db` | 27020 |
+| `feed` | 
 
 ---
 
 ## Stack complète
 
 ```bash
-# Démarrer tous les services (dev)
+# Démarrer tous les gateway (dev)
 docker compose -f docker-compose.dev.yml up
 
 # Démarrer en arrière-plan
@@ -80,7 +81,7 @@ docker compose down -v      # Arrêter et supprimer les données
 ## Logs
 
 ```bash
-# Logs de tous les services
+# Logs de tous les gateway
 docker compose -f docker-compose.dev.yml logs
 
 # Logs d'un service en temps réel

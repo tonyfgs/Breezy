@@ -4,6 +4,7 @@ import { LikePostUseCase } from '../../application/usecases/LikePostUseCase';
 import { UnlikePostUseCase } from '../../application/usecases/UnlikePostUseCase';
 import { GetLikesByPostUseCase } from '../../application/usecases/GetLikesByPostUseCase';
 import { GetLikeCountByPostUseCase } from '../../application/usecases/GetLikeCountByPostUseCase';
+import { authenticate } from '../middlewares/authMiddleware';
 
 export class LikeController implements IController {
     public readonly path = '/posts';
@@ -19,10 +20,10 @@ export class LikeController implements IController {
     }
 
     private initialiseRoutes() {
-        this.router.get('/:postId/likes/count', this.getLikeCount.bind(this));
-        this.router.get('/:postId/likes', this.getLikes.bind(this));
-        this.router.post('/:postId/likes', this.likePost.bind(this));
-        this.router.delete('/:postId/likes/:userId', this.unlikePost.bind(this));
+        this.router.get('/:postId/likes/count', authenticate, this.getLikeCount.bind(this));
+        this.router.get('/:postId/likes', authenticate, this.getLikes.bind(this));
+        this.router.post('/:postId/likes', authenticate, this.likePost.bind(this));
+        this.router.delete('/:postId/likes/:userId', authenticate, this.unlikePost.bind(this));
     }
 
     private async getLikeCount(req: any, res: any): Promise<void> {
@@ -38,6 +39,7 @@ export class LikeController implements IController {
     }
 
     private async likePost(req: any, res: any): Promise<void> {
+        req.body.userId = req.user.id; // Force to current user
         const { userId } = req.body;
         const like = await this.likePostUseCase.execute(req.params.postId, userId);
         if (!like) return res.status(409).json({ message: 'Already liked' });
@@ -45,6 +47,9 @@ export class LikeController implements IController {
     }
 
     private async unlikePost(req: any, res: any): Promise<void> {
+        if (req.params.userId !== req.user.id && !['Admin', 'Moderateur'].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Forbidden - Cannot unlike for another user' });
+        }
         await this.unlikePostUseCase.execute(req.params.postId, req.params.userId);
         res.status(204).send();
     }

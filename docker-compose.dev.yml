@@ -92,6 +92,7 @@ services:
       - PORT=4003
       - NODE_ENV=development
       - MONGODB_URI=mongodb://posts-db:27017/breezy-posts
+      - JWT_SECRET=secret
     depends_on:
       - posts-db
 
@@ -118,6 +119,7 @@ services:
       - BASE_URL_POSTS=http://posts:4003
       - BASE_URL_USERS=http://users:4002
       - BASE_URL_MODERATION=http://moderation:4005
+      - JWT_SECRET=secret
     depends_on:
       - posts
       - users

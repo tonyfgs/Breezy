@@ -4,7 +4,7 @@ import {IPostGateway} from "../../../domain/gateway/IPostGateway";
 export class MockPostsGateway implements IPostGateway {
 
 
-    async getPostsByAuthorsIds(userId: Array<string>): Promise<Array<PostEntity>> {
+    async getPostsByAuthorsIds(userId: string[], limit: number, cursor?: string): Promise<{ posts: PostEntity[]; nextCursor?: string }> {
         const mockPosts: PostEntity[] = [
             {
                 id: 'post-1',
@@ -32,7 +32,13 @@ export class MockPostsGateway implements IPostGateway {
             },
         ];
 
-        return mockPosts.filter(post => userId.includes(post.authorId));
+        let filtered = mockPosts.filter(post => userId.includes(post.authorId));
+        if (cursor) {
+            filtered = filtered.filter(post => post.createdAt < new Date(cursor));
+        }
+        const posts = filtered.slice(0, limit);
+        const nextCursor = posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : undefined;
+        return { posts, nextCursor };
     }
 
 }

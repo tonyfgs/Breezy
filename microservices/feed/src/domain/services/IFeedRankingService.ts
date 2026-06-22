@@ -1,8 +1,5 @@
-import {ISortingRule} from "./ISortingRule";
 import {PostEntity} from "../entities/PostEntity";
 
 export interface IFeedRankingService {
-
-
-    build(userId: string): Promise<Array<PostEntity>>;
+    rank(posts: Array<PostEntity>): Array<PostEntity>;
 }

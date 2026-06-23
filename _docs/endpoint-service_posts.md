@@ -1,7 +1,7 @@
 # Endpoints Posts
 
 > Service : Posts Service  
-> Dernière mise à jour : 2026-06-22
+> Dernière mise à jour : 2026-06-23
 
 ---
 
@@ -11,19 +11,23 @@ Port par défaut : `4003` (env `PORT`)
 
 ## Posts
 
-| Méthode | Chemin | Description |
-|---------|--------|-------------|
-| `GET` | `/posts` | Récupère tous les posts (hors commentaires), paginés |
-| `GET` | `/posts/user/:userId` | Récupère tous les posts d'un utilisateur, paginés |
-| `GET` | `/posts/:id` | Récupère un post par son ID |
-| `GET` | `/posts/:id/comments` | Récupère les commentaires d'un post, paginés |
-| `POST` | `/posts` | Crée un post ou un commentaire |
-| `POST` | `/posts/by-authors` | Récupère les posts de plusieurs auteurs, paginés par curseur |
-| `PUT` | `/posts/:id` | Modifie le contenu d'un post |
-| `PATCH` | `/posts/:id` | Met à jour les champs partiels d'un post |
-| `DELETE` | `/posts/:id` | Supprime un post |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `GET` | `/posts` | `JWT` | Récupère tous les posts (hors commentaires), paginés |
+| `GET` | `/posts/user/:userId` | `JWT` | Récupère tous les posts d'un utilisateur, paginés |
+| `GET` | `/posts/:id` | `JWT` | Récupère un post par son ID |
+| `GET` | `/posts/:id/comments` | `JWT` | Récupère les commentaires d'un post, paginés |
+| `POST` | `/posts` | `JWT` | Crée un post ou un commentaire |
+| `POST` | `/posts/by-authors` | `JWT` | Récupère les posts de plusieurs auteurs (utilisé par Feed) |
+| `PUT` | `/posts/:id` | `JWT` + owner ou `moderator`/`admin` | Modifie le contenu d'un post |
+| `PATCH` | `/posts/:id` | `JWT` + owner ou `moderator`/`admin` | Met à jour les champs partiels d'un post |
+| `DELETE` | `/posts/:id` | `JWT` + owner ou `moderator`/`admin` | Supprime un post |
+
+---
 
 ### GET `/posts`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Défaut | Description |
 |-----------|-------------|------|--------|--------|-------------|
@@ -55,11 +59,13 @@ Réponse `200` : objet `PaginatedPostsDTO`
 }
 ```
 
-> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Les commentaires sont exclus.
+> Seuls les posts de premier niveau sont retournés (`parentPostId: null`).
 
 ---
 
 ### GET `/posts/:id`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -67,24 +73,11 @@ Réponse `200` : objet `PaginatedPostsDTO`
 
 Réponse `200` : objet `PostDTO`
 
-```json
-{
-  "id": "string",
-  "authorId": "string",
-  "content": "string",
-  "parentPostId": "string | null",
-  "tagsList": [],
-  "mediaList": [],
-  "mentionsList": [],
-  "fl_banned": 0,
-  "createdAt": "Date",
-  "updatedAt": "Date"
-}
-```
-
 ---
 
 ### GET `/posts/user/:userId`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Défaut | Description |
 |-----------|-------------|------|--------|--------|-------------|
@@ -92,13 +85,15 @@ Réponse `200` : objet `PostDTO`
 | `page` | query | `number` | non | `1` | Numéro de page (min : 1) |
 | `limit` | query | `number` | non | `10` | Nombre d'éléments par page (min : 1, max : 100) |
 
-Réponse `200` : objet `PaginatedPostsDTO` (même format que `GET /posts`)
+Réponse `200` : objet `PaginatedPostsDTO`
 
-> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Les commentaires sont exclus.
+> Seuls les posts de premier niveau sont retournés (`parentPostId: null`).
 
 ---
 
 ### GET `/posts/:id/comments`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Défaut | Description |
 |-----------|-------------|------|--------|--------|-------------|
@@ -108,37 +103,18 @@ Réponse `200` : objet `PaginatedPostsDTO` (même format que `GET /posts`)
 
 Réponse `200` : objet `PaginatedPostsDTO`
 
-```json
-{
-  "data": [
-    {
-      "id": "string",
-      "authorId": "string",
-      "content": "string",
-      "parentPostId": "string",
-      "tagsList": [],
-      "mediaList": [],
-      "mentionsList": [],
-      "createdAt": "Date",
-      "updatedAt": "Date"
-    }
-  ],
-  "total": 42,
-  "page": 1,
-  "limit": 10,
-  "totalPages": 5
-}
-```
-
 ---
 
 ### POST `/posts`
+
+Requiert : `Authorization: Bearer <token>`.
+
+L'`authorId` est extrait automatiquement du token — il n'est pas à fournir dans le body.
 
 Body JSON (`CreatePostDTO`) :
 
 | Champ | Type | Requis | Description |
 |-------|------|--------|-------------|
-| `authorId` | `string` | oui | ID de l'auteur (référence externe vers le service users) |
 | `content` | `string` | oui | Contenu textuel du post |
 | `parentPostId` | `string \| null` | non | ID du post parent — si renseigné, crée un commentaire |
 | `tagsList` | `string[]` | non | Liste de tags (défaut : `[]`) |
@@ -150,6 +126,8 @@ Réponse `201` : objet `PostDTO`
 ---
 
 ### PUT `/posts/:id`
+
+Requiert : `Authorization: Bearer <token>`. Seul l'auteur du post, un modérateur ou un administrateur peut modifier.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -166,9 +144,13 @@ Body JSON (`UpdatePostDTO`) :
 
 Réponse `200` : objet `PostDTO` mis à jour
 
+Erreur `403` si l'utilisateur n'est pas l'auteur et n'a pas le rôle requis.
+
 ---
 
 ### PATCH `/posts/:id`
+
+Requiert : `Authorization: Bearer <token>`. Seul l'auteur du post, un modérateur ou un administrateur peut modifier.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -182,6 +164,8 @@ Body JSON (tous les champs sont optionnels) :
 
 Réponse `200` : objet `PostDTO` mis à jour
 
+Erreur `403` si l'utilisateur n'est pas l'auteur et n'a pas le rôle requis.
+
 Erreur `404` si le post n'existe pas.
 
 > Utilisé par le service modération pour mettre à jour `fl_banned` lors d'un ban ou d'une révocation.
@@ -190,17 +174,23 @@ Erreur `404` si le post n'existe pas.
 
 ### DELETE `/posts/:id`
 
+Requiert : `Authorization: Bearer <token>`. Seul l'auteur du post, un modérateur ou un administrateur peut supprimer.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `id` | path | `string` | oui | ID MongoDB du post |
 
 Réponse `204` : aucun contenu
 
+Erreur `403` si l'utilisateur n'est pas l'auteur et n'a pas le rôle requis.
+
 Erreur `404` si le post n'existe pas.
 
 ---
 
 ### POST `/posts/by-authors`
+
+Requiert : `Authorization: Bearer <token>`.
 
 Récupère les posts de plusieurs auteurs avec pagination par curseur. Utilisé par le service Feed.
 
@@ -242,14 +232,18 @@ Réponse `200` :
 
 ## Likes
 
-| Méthode | Chemin | Description |
-|---------|--------|-------------|
-| `GET` | `/posts/:postId/likes/count` | Retourne le nombre de likes d'un post |
-| `GET` | `/posts/:postId/likes` | Récupère les likes d'un post |
-| `POST` | `/posts/:postId/likes` | Like un post |
-| `DELETE` | `/posts/:postId/likes/:userId` | Retire le like d'un utilisateur |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `GET` | `/posts/:postId/likes/count` | `JWT` | Retourne le nombre de likes d'un post |
+| `GET` | `/posts/:postId/likes` | `JWT` | Récupère les likes d'un post |
+| `POST` | `/posts/:postId/likes` | `JWT` | Like un post |
+| `DELETE` | `/posts/:postId/likes/:userId` | `JWT` + owner ou `moderator`/`admin` | Retire le like d'un utilisateur |
+
+---
 
 ### GET `/posts/:postId/likes/count`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -267,6 +261,8 @@ Réponse `200` :
 ---
 
 ### GET `/posts/:postId/likes`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Défaut | Description |
 |-----------|-------------|------|--------|--------|-------------|
@@ -297,15 +293,13 @@ Réponse `200` : objet `PaginatedLikesDTO`
 
 ### POST `/posts/:postId/likes`
 
+Requiert : `Authorization: Bearer <token>`.
+
+Le `userId` est extrait automatiquement du token — il n'est pas à fournir dans le body.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `postId` | path | `string` | oui | ID MongoDB du post |
-
-Body JSON :
-
-| Champ | Type | Requis | Description |
-|-------|------|--------|-------------|
-| `userId` | `string` | oui | ID de l'utilisateur qui like |
 
 Réponse `201` : objet `LikeDTO`
 
@@ -315,9 +309,13 @@ Erreur `409` si l'utilisateur a déjà liké ce post.
 
 ### DELETE `/posts/:postId/likes/:userId`
 
+Requiert : `Authorization: Bearer <token>`. Seul l'utilisateur concerné, un modérateur ou un administrateur peut retirer le like.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `postId` | path | `string` | oui | ID MongoDB du post |
-| `userId` | path | `string` | oui | ID de l'utilisateur |
+| `userId` | path | `string` | oui | ID de l'utilisateur dont on retire le like |
 
 Réponse `204` : aucun contenu
+
+Erreur `403` si l'utilisateur n'est pas le propriétaire du like et n'a pas le rôle requis.

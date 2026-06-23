@@ -1,7 +1,7 @@
 # Endpoints Feed
 
 > Service : Feed Service  
-> Dernière mise à jour : 2026-06-22
+> Dernière mise à jour : 2026-06-23
 
 ---
 
@@ -11,11 +11,17 @@ Port par défaut : `4004` (env `PORT`)
 
 ## Feed
 
-| Méthode | Chemin | Description |
-|---------|--------|-------------|
-| `GET` | `/feed/:idUser` | Récupère le fil d'actualité paginé d'un utilisateur |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `GET` | `/feed/:idUser` | `JWT` + owner ou `moderator`/`admin` | Récupère le fil d'actualité paginé d'un utilisateur |
+
+---
 
 ### GET `/feed/:idUser`
+
+Requiert : `Authorization: Bearer <token>`.
+
+Un utilisateur ne peut accéder qu'à son propre fil (`idUser` doit correspondre à son `profileId`). Les modérateurs et administrateurs peuvent accéder au fil de n'importe quel utilisateur.
 
 Retourne les posts des utilisateurs suivis par `:idUser`, triés par date décroissante.
 
@@ -50,11 +56,7 @@ Réponse `200` : objet `FeedDto`
 
 `nextCursor` est absent si la dernière page est atteinte.
 
-Erreur `500` :
-
-```json
-{ "error": "message d'erreur" }
-```
+Erreur `403` si l'utilisateur tente d'accéder au fil d'un autre utilisateur sans les droits requis.
 
 > **Pagination cursor-based :** passer `nextCursor` comme paramètre `cursor` à la prochaine requête pour récupérer la page suivante.
 

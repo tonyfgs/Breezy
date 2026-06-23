@@ -1,7 +1,7 @@
 # Endpoints Moderation
 
 > Service : Moderation Service  
-> Dernière mise à jour : 2026-06-17
+> Dernière mise à jour : 2026-06-23
 
 ---
 
@@ -11,14 +11,18 @@ Port par défaut : `4005` (env `PORT`)
 
 ## Signalements
 
-| Méthode | Chemin | Accès | Description |
-|---------|--------|-------|-------------|
-| `POST` | `/reports` | Utilisateur | Créer un signalement |
-| `GET` | `/reports` | Modérateur | Lister les signalements |
-| `GET` | `/reports/:id` | Modérateur | Détail d'un signalement |
-| `PATCH` | `/reports/:id` | Modérateur | Mettre à jour le statut |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `POST` | `/reports` | `JWT` | Créer un signalement |
+| `GET` | `/reports` | `JWT` + `moderator`/`admin` | Lister les signalements |
+| `GET` | `/reports/:id` | `JWT` + `moderator`/`admin` | Détail d'un signalement |
+| `PATCH` | `/reports/:id` | `JWT` + `moderator`/`admin` | Mettre à jour le statut |
+
+---
 
 ### POST `/reports`
+
+Requiert : `Authorization: Bearer <token>`.
 
 Body JSON :
 
@@ -37,6 +41,8 @@ Erreur `500` en cas d'erreur serveur.
 
 ### GET `/reports`
 
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `status` | query | `string` | non | Filtrer par statut : `"pending"`, `"reviewed"`, `"dismissed"` |
@@ -47,6 +53,8 @@ Réponse `200` : tableau de `ReportDTO`
 ---
 
 ### GET `/reports/:id`
+
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -59,6 +67,8 @@ Erreur `404` si le signalement n'existe pas.
 ---
 
 ### PATCH `/reports/:id`
+
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -79,14 +89,18 @@ Erreur `404` si le signalement n'existe pas.
 
 ## Sanctions
 
-| Méthode | Chemin | Accès | Description |
-|---------|--------|-------|-------------|
-| `POST` | `/sanctions` | Modérateur | Créer une sanction |
-| `GET` | `/sanctions` | Modérateur | Lister les sanctions |
-| `GET` | `/sanctions/:id` | Modérateur | Détail d'une sanction |
-| `DELETE` | `/sanctions/:id` | Modérateur | Révoquer une sanction |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `POST` | `/sanctions` | `JWT` + `moderator`/`admin` | Créer une sanction |
+| `GET` | `/sanctions` | `JWT` + `moderator`/`admin` | Lister les sanctions |
+| `GET` | `/sanctions/:id` | `JWT` + `moderator`/`admin` | Détail d'une sanction |
+| `DELETE` | `/sanctions/:id` | `JWT` + `moderator`/`admin` | Révoquer une sanction |
+
+---
 
 ### POST `/sanctions`
+
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
 
 Body JSON :
 
@@ -102,12 +116,15 @@ Réponse `201` : objet `SanctionDTO`
 
 Effet de bord : appelle `PATCH /users/:id` ou `PATCH /posts/:id` pour passer `fl_banned` à `1`.
 
-Erreur `409` si une sanction active existe déjà pour cette cible.  
+Erreur `409` si une sanction active existe déjà pour cette cible.
+
 Erreur `500` en cas d'erreur serveur (BanService inaccessible, etc.).
 
 ---
 
 ### GET `/sanctions`
+
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -121,6 +138,8 @@ Réponse `200` : tableau de `SanctionDTO`
 
 ### GET `/sanctions/:id`
 
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `id` | path | `string` | oui | ID MongoDB de la sanction |
@@ -133,6 +152,8 @@ Erreur `404` si la sanction n'existe pas.
 
 ### DELETE `/sanctions/:id`
 
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `id` | path | `string` | oui | ID MongoDB de la sanction |
@@ -141,7 +162,8 @@ Réponse `200` : objet `SanctionDTO` mis à jour (`fl_active: 0`)
 
 Effet de bord : appelle `PATCH /users/:id` ou `PATCH /posts/:id` pour remettre `fl_banned` à `0`.
 
-Erreur `404` si la sanction n'existe pas.  
+Erreur `404` si la sanction n'existe pas.
+
 Erreur `409` si la sanction est déjà révoquée.
 
 ---
@@ -157,11 +179,3 @@ Voir [endpoint-service_users.md](endpoint-service_users.md). Accepte `fl_banned`
 ### Service Posts — `PATCH /posts/:id`
 
 Voir [endpoint-service_posts.md](endpoint-service_posts.md). Accepte `fl_banned` dans le body.
-
----
-
-## Notes d'implémentation
-
-- Tous les handlers du controller ont un try/catch — une erreur retourne `404` ou `500` sans crasher le service.
-- Le `BanService` lève une erreur si le service cible répond avec un statut non-ok, ce qui fait remonter un `500` au client.
-- Authentification : non implémentée — le champ `moderatorId` est transmis directement dans le body pour l'instant.

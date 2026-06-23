@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
@@ -8,28 +8,48 @@ import Avatar from '../../components/ui/Avatar';
 import ThemeSwitch from '../../components/ui/ThemeSwitch';
 import LanguageSwitch from '../../components/ui/LanguageSwitch';
 import { useLanguage } from '../../context/LanguageContext';
-
-// TODO: remplacer par le contexte auth
-const MOCK_USER = {
-  sk_id: 'current_user',
-  nm_username: 'moi',
-  txt_bio: '',
-  txt_email: 'moi@example.com',
-};
+import { useAuth } from '../../context/AuthContext';
+import { getProfileByUsernameApi, updateProfileApi } from '../../lib/api/users.api';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const [username, setUsername] = useState(MOCK_USER.nm_username);
-  const [bio, setBio] = useState(MOCK_USER.txt_bio);
+  const { user, logout } = useAuth();
 
-  function handleSaveProfile(e) {
+  const [profileId, setProfileId] = useState(null);
+  const [bio, setBio] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    getProfileByUsernameApi(user.username)
+      .then(p => {
+        if (p) {
+          setProfileId(p.id);
+          setBio(p.bio ?? '');
+        }
+      })
+      .catch(console.error);
+  }, [user]);
+
+  async function handleSaveProfile(e) {
     e.preventDefault();
-    // TODO: API - PATCH /users/:id { nm_username: username, txt_bio: bio }
+    if (!profileId || saving) return;
+    setSaving(true);
+    try {
+      await updateProfileApi(profileId, { bio });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleLogout() {
-    // TODO: API - POST /auth/logout
+    logout();
     router.push('/login');
   }
 
@@ -46,7 +66,7 @@ export default function SettingsPage() {
         <section className="settings-section">
           <h2 className="settings-section__title">{t('settings.profileSection')}</h2>
           <div className="settings-avatar-row">
-            <Avatar name={username} size="lg" />
+            <Avatar name={user?.username ?? ''} size="lg" />
             <button className="settings-avatar-change">{t('settings.changePhoto')}</button>
           </div>
           <form className="settings-form" onSubmit={handleSaveProfile}>
@@ -54,8 +74,8 @@ export default function SettingsPage() {
               <label className="settings-field__label">{t('settings.usernameLabel')}</label>
               <input
                 className="settings-field__input"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
+                value={user?.username ?? ''}
+                readOnly
                 placeholder={t('settings.usernamePlaceholder')}
               />
             </div>
@@ -69,7 +89,9 @@ export default function SettingsPage() {
                 rows={3}
               />
             </div>
-            <button type="submit" className="btn btn--primary btn--full">{t('settings.save')}</button>
+            <button type="submit" className="btn btn--primary btn--full" disabled={saving}>
+              {saved ? '✓' : t('settings.save')}
+            </button>
           </form>
         </section>
 
@@ -89,7 +111,7 @@ export default function SettingsPage() {
           <h2 className="settings-section__title">{t('settings.accountSection')}</h2>
           <div className="settings-item">
             <span className="settings-item__label">{t('settings.email')}</span>
-            <span className="settings-item__value">{MOCK_USER.txt_email}</span>
+            <span className="settings-item__value">—</span>
           </div>
           <button className="settings-item settings-item--btn">
             <span className="settings-item__label">{t('settings.changePassword')}</span>

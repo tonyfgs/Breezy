@@ -22,7 +22,7 @@ export class FeedController implements IController {
             const cursor = req.query.cursor as string | undefined;
             const { posts, nextCursor } = await this.getFeedUseCase.execute(req.params.idUser, limit, cursor);
             const feedDto = new FeedDto(
-                posts.map(p => new PostDTO(p.id, p.authorId, p.content, p.likeCount, p.createdAt)),
+                posts.map(p => new PostDTO(p.id, p.authorId, p.content, p.likeCount ?? 0, p.commentCount ?? 0, p.createdAt)),
                 nextCursor,
             );
             res.status(200).json(feedDto);

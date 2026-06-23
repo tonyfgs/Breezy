@@ -1,5 +1,15 @@
 import { Post } from '../../domain/entities/Post';
 
+export interface PostWithStatsDTO {
+    id: string;
+    authorId: string;
+    content: string;
+    likeCount: number;
+    commentCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 export interface PostDTO {
     id: string;
     authorId: string;

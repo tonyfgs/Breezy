@@ -1,6 +1,18 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
 
 export default function HomePage() {
-  // TODO: rediriger vers /login si non authentifié (AuthContext)
-  redirect('/feed');
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      router.replace(user ? '/feed' : '/login');
+    }
+  }, [user, loading, router]);
+
+  return null;
 }

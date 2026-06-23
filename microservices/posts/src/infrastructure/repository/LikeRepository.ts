@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { ILikeRepository } from '../../domain/repositories/ILikeRepository';
 import { PaginationParams } from '../../domain/repositories/IPostRepository';
 import { Like } from '../../domain/entities/Like';
@@ -16,6 +17,15 @@ export class LikeRepository implements ILikeRepository {
 
     async countLikesByPost(postId: string): Promise<number> {
         return LikeModel.countDocuments({ postId });
+    }
+
+    async countLikesByPosts(postIds: string[]): Promise<Map<string, number>> {
+        const objectIds = postIds.map(id => new mongoose.Types.ObjectId(id));
+        const results = await LikeModel.aggregate([
+            { $match: { postId: { $in: objectIds } } },
+            { $group: { _id: '$postId', count: { $sum: 1 } } },
+        ]);
+        return new Map(results.map((r: any) => [r._id.toString(), r.count]));
     }
 
     async getLike(postId: string, userId: string): Promise<Like | null> {

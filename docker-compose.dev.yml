@@ -43,6 +43,8 @@ services:
       - DB_NAME=iam_db
       - JWT_SECRET=secret
       - JWT_EXPIRES_IN=1h
+      - SERVICE_SECRET=breezy-internal
+      - USERS_SERVICE_URL=http://users:4002
     depends_on:
       - iam-db
 
@@ -69,6 +71,7 @@ services:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://users-db:27017/breezy-users
       - JWT_SECRET=secret
+      - SERVICE_SECRET=breezy-internal
     depends_on:
       - users-db
 

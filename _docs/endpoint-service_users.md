@@ -1,7 +1,7 @@
 # Endpoints Users
 
 > Service : User Service  
-> Dernière mise à jour : 2026-06-22
+> Dernière mise à jour : 2026-06-23
 
 ---
 
@@ -11,18 +11,21 @@ Port par défaut : `4002` (env `PORT`)
 
 ## Profils
 
-| Méthode | Chemin | Description |
-|---------|--------|-------------|
-| `GET` | `/users/` | Récupère tous les profils |
-| `GET` | `/users/:id` | Récupère un profil par son ID |
-| `POST` | `/users/` | Crée un nouveau profil |
-| `PATCH` | `/users/:id` | Met à jour les champs d'un profil |
-| `DELETE` | `/users/:id` | Supprime un profil par son ID MongoDB |
-| `DELETE` | `/users/username/:username` | Supprime un profil par son username (utilisé par le service IAM) |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `GET` | `/users/` | `JWT` | Récupère tous les profils |
+| `GET` | `/users/username/:username` | `JWT` ou service interne | Récupère un profil par son username |
+| `GET` | `/users/:id` | `JWT` | Récupère un profil par son ID |
+| `POST` | `/users/` | Non | Crée un nouveau profil (appelé par l'IAM au register) |
+| `PATCH` | `/users/:id` | `JWT` + owner ou `moderator`/`admin` | Met à jour les champs d'un profil |
+| `DELETE` | `/users/username/:username` | `JWT`/service interne + `moderator`/`admin` | Supprime un profil par son username |
+| `DELETE` | `/users/:id` | `JWT` + owner ou `moderator`/`admin` | Supprime un profil par son ID |
+
+---
 
 ### GET `/users/`
 
-Aucun paramètre.
+Requiert : `Authorization: Bearer <token>`.
 
 Réponse `200` : tableau de `ProfileDTO`
 
@@ -42,11 +45,13 @@ Réponse `200` : tableau de `ProfileDTO`
 
 ---
 
-### GET `/users/:id`
+### GET `/users/username/:username`
+
+Requiert : `Authorization: Bearer <token>` ou header `x-service-secret` (appel inter-service depuis l'IAM).
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
-| `id` | path | `string` | oui | ID MongoDB du profil |
+| `username` | path | `string` | oui | Nom d'utilisateur |
 
 Réponse `200` : objet `ProfileDTO`
 
@@ -62,9 +67,25 @@ Réponse `200` : objet `ProfileDTO`
 }
 ```
 
+Erreur `404` si le profil n'existe pas.
+
+---
+
+### GET `/users/:id`
+
+Requiert : `Authorization: Bearer <token>`.
+
+| Paramètre | Emplacement | Type | Requis | Description |
+|-----------|-------------|------|--------|-------------|
+| `id` | path | `string` | oui | ID MongoDB du profil |
+
+Réponse `200` : objet `ProfileDTO`
+
 ---
 
 ### POST `/users/`
+
+Route publique — appelée uniquement par le service IAM lors d'un register.
 
 Body JSON (`CreateProfileDTO`) :
 
@@ -82,6 +103,8 @@ Erreur `400` si le `username` est déjà pris.
 
 ### PATCH `/users/:id`
 
+Requiert : `Authorization: Bearer <token>`. Seul le propriétaire du profil, un modérateur ou un administrateur peut modifier.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `id` | path | `string` | oui | ID MongoDB du profil |
@@ -96,29 +119,17 @@ Body JSON (tous les champs sont optionnels) :
 
 Réponse `200` : objet `ProfileDTO` mis à jour
 
+Erreur `403` si l'utilisateur n'est pas propriétaire du profil et n'a pas le rôle requis.
+
 Erreur `404` si le profil n'existe pas.
 
 > Utilisé par le service modération pour mettre à jour `fl_banned` lors d'un ban ou d'une révocation.
 
 ---
 
-### DELETE `/users/:id`
-
-| Paramètre | Emplacement | Type | Requis | Description |
-|-----------|-------------|------|--------|-------------|
-| `id` | path | `string` | oui | ID MongoDB du profil |
-
-Réponse `200` :
-
-```json
-{ "message": "Profile deleted successfully" }
-```
-
-Erreur `404` si le profil n'existe pas.
-
----
-
 ### DELETE `/users/username/:username`
+
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`, ou header `x-service-secret` (appel inter-service depuis l'IAM).
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -136,37 +147,62 @@ Erreur `404` si le profil n'existe pas.
 
 ---
 
+### DELETE `/users/:id`
+
+Requiert : `Authorization: Bearer <token>`. Seul le propriétaire du profil, un modérateur ou un administrateur peut supprimer.
+
+| Paramètre | Emplacement | Type | Requis | Description |
+|-----------|-------------|------|--------|-------------|
+| `id` | path | `string` | oui | ID MongoDB du profil |
+
+Réponse `200` :
+
+```json
+{ "message": "Profile deleted successfully" }
+```
+
+Erreur `403` si l'utilisateur n'est pas propriétaire du profil et n'a pas le rôle requis.
+
+Erreur `404` si le profil n'existe pas.
+
+---
+
 ## Follows
 
-| Méthode | Chemin | Description |
-|---------|--------|-------------|
-| `POST` | `/follows/` | Crée une relation de follow |
-| `GET` | `/follows/:id/following` | Récupère les IDs des utilisateurs suivis par `:id` |
-| `GET` | `/follows/:id/followers` | Récupère les IDs des followers de `:id` |
-| `DELETE` | `/follows/` | Supprime une relation de follow |
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `POST` | `/follows/` | `JWT` | Crée une relation de follow |
+| `GET` | `/follows/:id/following` | `JWT` | Récupère les IDs des utilisateurs suivis par `:id` |
+| `GET` | `/follows/:id/followers` | `JWT` | Récupère les IDs des followers de `:id` |
+| `DELETE` | `/follows/` | `JWT` | Supprime une relation de follow |
+
+---
 
 ### POST `/follows/`
+
+Requiert : `Authorization: Bearer <token>`.
+
+Le `follwerId` est extrait automatiquement du token — il n'est pas à fournir dans le body.
 
 Body JSON :
 
 | Champ | Type | Requis | Description |
 |-------|------|--------|-------------|
-| `follwerId` | `string` | oui | ID MongoDB de l'utilisateur qui suit |
-| `followingId` | `string` | oui | ID MongoDB de l'utilisateur suivi |
+| `followingId` | `string` | oui | ID MongoDB de l'utilisateur à suivre |
 
-> **Typo dans le code source** : `follwerId` (un seul `o`) — à respecter tel quel dans les requêtes.
-
-Réponse `201` : tableau des IDs suivis par `follwerId` après création
+Réponse `201` : tableau des IDs suivis par l'utilisateur authentifié après création
 
 ```json
 ["686abc...", "686def..."]
 ```
 
-Erreur `400` si `follwerId` ou `followingId` est absent.
+Erreur `400` si `followingId` est absent.
 
 ---
 
 ### GET `/follows/:id/following`
+
+Requiert : `Authorization: Bearer <token>`.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -184,6 +220,8 @@ Réponse `200` : tableau des IDs des utilisateurs suivis par `:id`
 
 ### GET `/follows/:id/followers`
 
+Requiert : `Authorization: Bearer <token>`.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `id` | path | `string` | oui | ID MongoDB de l'utilisateur |
@@ -198,17 +236,20 @@ Réponse `200` : tableau des IDs des utilisateurs qui suivent `:id`
 
 ### DELETE `/follows/`
 
+Requiert : `Authorization: Bearer <token>`.
+
+Le `follwerId` est extrait automatiquement du token — il n'est pas à fournir dans le body.
+
 Body JSON :
 
 | Champ | Type | Requis | Description |
 |-------|------|--------|-------------|
-| `follwerId` | `string` | oui | ID MongoDB de l'utilisateur qui suit |
 | `followingId` | `string` | oui | ID MongoDB de l'utilisateur à ne plus suivre |
 
-Réponse `200` : tableau des IDs encore suivis par `follwerId` après suppression
+Réponse `200` : tableau des IDs encore suivis par l'utilisateur authentifié après suppression
 
 ```json
 ["686abc..."]
 ```
 
-Erreur `400` si `follwerId` ou `followingId` est absent.
+Erreur `400` si `followingId` est absent.

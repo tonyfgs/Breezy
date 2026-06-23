@@ -1,3 +1,5 @@
+const SERVICE_SECRET = process.env.SERVICE_SECRET || '';
+
 export class UserProfileService {
     private readonly usersUrl: string;
 
@@ -18,7 +20,9 @@ export class UserProfileService {
     }
 
     async getProfileId(username: string): Promise<string> {
-        const response = await fetch(`${this.usersUrl}/users/username/${username}`);
+        const response = await fetch(`${this.usersUrl}/users/username/${username}`, {
+            headers: { 'x-service-secret': SERVICE_SECRET },
+        });
         if (!response.ok) throw new Error(`Failed to get profile for ${username}: ${response.status}`);
         const profile = await response.json() as { id: string };
         return profile.id;
@@ -27,6 +31,7 @@ export class UserProfileService {
     async deleteProfile(username: string): Promise<void> {
         const response = await fetch(`${this.usersUrl}/users/username/${username}`, {
             method: 'DELETE',
+            headers: { 'x-service-secret': SERVICE_SECRET },
         });
 
         if (!response.ok && response.status !== 404) {

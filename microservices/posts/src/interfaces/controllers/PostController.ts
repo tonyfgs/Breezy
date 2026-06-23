@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import jwt from 'jsonwebtoken';
 import { IController } from './IController';
 import { CreatePostUseCase } from '../../application/usecases/CreatePostUseCase';
 import { GetPostUseCase } from '../../application/usecases/GetPostUseCase';
@@ -9,6 +8,7 @@ import { GetPostsByUserUseCase } from '../../application/usecases/GetPostsByUser
 import { GetPostsByAuthorsUseCase } from '../../application/usecases/GetPostsByAuthorsUseCase';
 import { UpdatePostUseCase } from '../../application/usecases/UpdatePostUseCase';
 import { DeletePostUseCase } from '../../application/usecases/DeletePostUseCase';
+import { authenticate } from '../middlewares/authMiddleware';
 
 export class PostController implements IController {
     public readonly path = '/posts';
@@ -28,15 +28,15 @@ export class PostController implements IController {
     }
 
     private initialiseRoutes() {
-        this.router.get('/', this.getAllPosts.bind(this));
-        this.router.get('/user/:userId', this.getPostsByUser.bind(this));
-        this.router.get('/:id', this.getPost.bind(this));
-        this.router.get('/:id/comments', this.getComments.bind(this));
-        this.router.post('/by-authors', this.getPostsByAuthors.bind(this));
-        this.router.post('/', this.createPost.bind(this));
-        this.router.put('/:id', this.updatePost.bind(this));
-        this.router.patch('/:id', this.patchPost.bind(this));
-        this.router.delete('/:id', this.deletePost.bind(this));
+        this.router.get('/', authenticate, this.getAllPosts.bind(this));
+        this.router.get('/user/:userId', authenticate, this.getPostsByUser.bind(this));
+        this.router.get('/:id', authenticate, this.getPost.bind(this));
+        this.router.get('/:id/comments', authenticate, this.getComments.bind(this));
+        this.router.post('/by-authors', authenticate, this.getPostsByAuthors.bind(this));
+        this.router.post('/', authenticate, this.createPost.bind(this));
+        this.router.put('/:id', authenticate, this.updatePost.bind(this));
+        this.router.patch('/:id', authenticate, this.patchPost.bind(this));
+        this.router.delete('/:id', authenticate, this.deletePost.bind(this));
     }
 
     private async getAllPosts(req: any, res: any): Promise<void> {
@@ -94,9 +94,7 @@ export class PostController implements IController {
 
     private async createPost(req: any, res: any): Promise<void> {
         try {
-            const token = req.headers.authorization?.split(' ')[1];
-            const decoded = jwt.decode(token) as { profileId?: string } | null;
-            if (decoded?.profileId) req.body.authorId = decoded.profileId;
+            req.body.authorId = req.user.id;
             const post = await this.createPostUseCase.execute(req.body);
             res.status(201).json(post);
         } catch (err: any) {
@@ -106,6 +104,10 @@ export class PostController implements IController {
 
     private async updatePost(req: any, res: any): Promise<void> {
         try {
+            const existingPost = await this.getPostUseCase.execute(req.params.id);
+            if (existingPost.authorId !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
+                return res.status(403).json({ message: 'Forbidden - Only the author can update this post' });
+            }
             const post = await this.updatePostUseCase.execute(req.params.id, req.body);
             res.status(200).json(post);
         } catch (err: any) {
@@ -115,6 +117,10 @@ export class PostController implements IController {
 
     private async patchPost(req: any, res: any): Promise<void> {
         try {
+            const existingPost = await this.getPostUseCase.execute(req.params.id);
+            if (existingPost.authorId !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
+                return res.status(403).json({ message: 'Forbidden - Only the author can patch this post' });
+            }
             const post = await this.updatePostUseCase.execute(req.params.id, req.body);
             res.status(200).json(post);
         } catch (err: any) {
@@ -124,6 +130,10 @@ export class PostController implements IController {
 
     private async deletePost(req: any, res: any): Promise<void> {
         try {
+            const existingPost = await this.getPostUseCase.execute(req.params.id);
+            if (existingPost.authorId !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
+                return res.status(403).json({ message: 'Forbidden - Only the author can delete this post' });
+            }
             await this.deletePostUseCase.execute(req.params.id);
             res.status(204).send();
         } catch (err: any) {

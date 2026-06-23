@@ -8,6 +8,10 @@ import {UpdateProfileUseCase} from "../../application/usecases/UpdateProfileUseC
 import {IController} from "./IController";
 import {Router} from "express";
 import {ProfileDTO} from "../../application/dto/ProfileDTO";
+import {authenticate} from "../middlewares/authMiddleware";
+import {authenticateOrService} from "../middlewares/serviceMiddleware";
+import {requireRole} from "../middlewares/roleMiddleware";
+import {requireProfileOwnershipOrAdmin} from "../middlewares/ownershipMiddleware";
 
 export class ProfileController implements IController{
 
@@ -34,13 +38,26 @@ export class ProfileController implements IController{
     }
 
     private initialiseRoutes() {
-        this.router.get(`/`, this.getAllProfiles.bind(this));
-        this.router.get(`/username/:username`, this.getProfileByUsername.bind(this));
-        this.router.get(`/:id`, this.getProfile.bind(this));
+        // GET /users/ : Securise, necessite d'etre authentifie
+        this.router.get(`/`, authenticate, this.getAllProfiles.bind(this));
+
+        // GET /users/username/:username : Securise, necessite d'etre authentifie
+        this.router.get(`/username/:username`, authenticateOrService, this.getProfileByUsername.bind(this));
+
+        // GET /users/:id : Securise, necessite d'etre authentifie
+        this.router.get(`/:id`, authenticate, this.getProfile.bind(this));
+
+        // POST /users/ : Public (creation de compte visiteur)
         this.router.post(`/`, this.createProfile.bind(this));
-        this.router.delete(`/username/:username`, this.deleteProfileByUsername.bind(this));
-        this.router.delete(`/:id`, this.deleteProfile.bind(this));
-        this.router.patch(`/:id`, this.patchProfile.bind(this));
+
+        // DELETE /users/username/:username : Réservé aux Administrateurs et Modérateurs
+        this.router.delete(`/username/:username`, authenticateOrService, requireRole(['admin', 'moderator']), this.deleteProfileByUsername.bind(this));
+
+        // DELETE /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs
+        this.router.delete(`/:id`, authenticate, requireProfileOwnershipOrAdmin, this.deleteProfile.bind(this));
+
+        // PATCH /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs
+        this.router.patch(`/:id`, authenticate, requireProfileOwnershipOrAdmin, this.patchProfile.bind(this));
     }
 
     private async getAllProfiles(_req: any, res: any): Promise<void> {

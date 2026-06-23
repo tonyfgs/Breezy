@@ -43,6 +43,8 @@ services:
       - DB_NAME=iam_db
       - JWT_SECRET=secret
       - JWT_EXPIRES_IN=1h
+      - SERVICE_SECRET=breezy-internal
+      - USERS_SERVICE_URL=http://users:4002
     depends_on:
       - iam-db
 
@@ -68,6 +70,8 @@ services:
       - PORT=4002
       - NODE_ENV=development
       - MONGODB_URI=mongodb://users-db:27017/breezy-users
+      - JWT_SECRET=secret
+      - SERVICE_SECRET=breezy-internal
     depends_on:
       - users-db
 
@@ -91,6 +95,7 @@ services:
       - PORT=4003
       - NODE_ENV=development
       - MONGODB_URI=mongodb://posts-db:27017/breezy-posts
+      - JWT_SECRET=secret
     depends_on:
       - posts-db
 
@@ -117,6 +122,7 @@ services:
       - BASE_URL_POSTS=http://posts:4003
       - BASE_URL_USERS=http://users:4002
       - BASE_URL_MODERATION=http://moderation:4005
+      - JWT_SECRET=secret
     depends_on:
       - posts
       - users
@@ -137,6 +143,7 @@ services:
       - MONGODB_URI=mongodb://moderation-db:27017/breezy-moderation
       - USERS_SERVICE_URL=http://users:4002
       - POSTS_SERVICE_URL=http://posts:4003
+      - JWT_SECRET=secret
     depends_on:
       - moderation-db
       - users

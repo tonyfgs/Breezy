@@ -1,10 +1,10 @@
 import {Router} from "express";
-import jwt from 'jsonwebtoken';
 import {IController} from "./IController";
 import {CreateFollowUseCase} from "../../application/usecases/CreateFollowUseCase";
 import {GetFollowersUseCase} from "../../application/usecases/GetFollowersUseCase";
 import {GetFollowingUseCase} from "../../application/usecases/GetFollowingUseCase";
 import {DeleteFollowUseCase} from "../../application/usecases/DeleteFollowUseCase";
+import {authenticate} from "../middlewares/authMiddleware";
 
 export class FollowController implements IController {
 
@@ -30,27 +30,17 @@ export class FollowController implements IController {
     }
 
     private initialiseRoutes() {
-        // POST /follows/          body: { follwerId, followingId }
-        this.router.post(`/`, this.createFollow.bind(this));
-
-        // GET /follows/:id/followers
-        this.router.get(`/:id/followers`, this.getFollowers.bind(this));
-
-        // GET /follows/:id/following
-        this.router.get(`/:id/following`, this.getFollowing.bind(this));
-
-        // DELETE /follows/
-        this.router.delete(`/`, this.deleteFollow.bind(this));
+        this.router.post(`/`, authenticate, this.createFollow.bind(this));
+        this.router.get(`/:id/followers`, authenticate, this.getFollowers.bind(this));
+        this.router.get(`/:id/following`, authenticate, this.getFollowing.bind(this));
+        this.router.delete(`/`, authenticate, this.deleteFollow.bind(this));
     }
 
     private async createFollow(req: any, res: any): Promise<void> {
-        const token = req.headers.authorization?.split(' ')[1];
-        const decoded = jwt.decode(token) as { profileId?: string } | null;
-        if (decoded?.profileId) req.body.follwerId = decoded.profileId;
-
-        const { follwerId, followingId } = req.body;
+        const follwerId = req.user.id;
+        const { followingId } = req.body;
         if (!follwerId || !followingId) {
-            res.status(400).json({ message: 'follwerId and followingId are required' });
+            res.status(400).json({ message: 'followingId is required' });
             return;
         }
         const following = await this.createFollowUseCase.execute(follwerId, followingId);
@@ -70,13 +60,10 @@ export class FollowController implements IController {
     }
 
     private async deleteFollow(req: any, res: any): Promise<void> {
-        const token = req.headers.authorization?.split(' ')[1];
-        const decoded = jwt.decode(token) as { profileId?: string } | null;
-        if (decoded?.profileId) req.body.follwerId = decoded.profileId;
-
-        const { follwerId, followingId } = req.body;
+        const follwerId = req.user.id;
+        const { followingId } = req.body;
         if (!follwerId || !followingId) {
-            res.status(400).json({ message: 'follwerId and followingId are required' });
+            res.status(400).json({ message: 'followingId is required' });
             return;
         }
         const following = await this.deleteFollowUseCase.execute(follwerId, followingId);

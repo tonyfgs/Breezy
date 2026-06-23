@@ -23,9 +23,9 @@ export class ReportController implements IController {
 
     private initialiseRoutes() {
         this.router.post('/', authenticate, this.createReport.bind(this));
-        this.router.get('/', authenticate, requireRole(['Moderateur', 'Admin']), this.getAllReports.bind(this));
-        this.router.get('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.getReport.bind(this));
-        this.router.patch('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.updateReport.bind(this));
+        this.router.get('/', authenticate, requireRole(['moderator', 'admin']), this.getAllReports.bind(this));
+        this.router.get('/:id', authenticate, requireRole(['moderator', 'admin']), this.getReport.bind(this));
+        this.router.patch('/:id', authenticate, requireRole(['moderator', 'admin']), this.updateReport.bind(this));
     }
 
     private async createReport(req: any, res: any): Promise<void> {

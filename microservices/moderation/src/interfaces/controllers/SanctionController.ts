@@ -21,10 +21,10 @@ export class SanctionController implements IController {
     }
 
     private initialiseRoutes() {
-        this.router.post('/', authenticate, requireRole(['Moderateur', 'Admin']), this.createSanction.bind(this));
-        this.router.get('/', authenticate, requireRole(['Moderateur', 'Admin']), this.getAllSanctions.bind(this));
-        this.router.get('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.getSanction.bind(this));
-        this.router.delete('/:id', authenticate, requireRole(['Moderateur', 'Admin']), this.revokeSanction.bind(this));
+        this.router.post('/', authenticate, requireRole(['moderator', 'admin']), this.createSanction.bind(this));
+        this.router.get('/', authenticate, requireRole(['moderator', 'admin']), this.getAllSanctions.bind(this));
+        this.router.get('/:id', authenticate, requireRole(['moderator', 'admin']), this.getSanction.bind(this));
+        this.router.delete('/:id', authenticate, requireRole(['moderator', 'admin']), this.revokeSanction.bind(this));
     }
 
     private async createSanction(req: any, res: any): Promise<void> {

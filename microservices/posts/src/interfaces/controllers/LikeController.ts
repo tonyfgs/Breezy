@@ -47,7 +47,7 @@ export class LikeController implements IController {
     }
 
     private async unlikePost(req: any, res: any): Promise<void> {
-        if (req.params.userId !== req.user.id && !['Admin', 'Moderateur'].includes(req.user.role)) {
+        if (req.params.userId !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Forbidden - Cannot unlike for another user' });
         }
         await this.unlikePostUseCase.execute(req.params.postId, req.params.userId);

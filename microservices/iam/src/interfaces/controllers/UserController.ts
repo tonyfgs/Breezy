@@ -5,7 +5,7 @@ import { RegisterUseCase } from '../../application/usecases/RegisterUseCase';
 import { GetAllUsersUseCase } from '../../application/usecases/GetAllUsersUseCase';
 import { DeleteUserUseCase } from '../../application/usecases/DeleteUserUseCase';
 import { verifyToken } from '../../infrastructure/utils/jwt.util';
-import { authenticate } from '../middlewares/authMiddleware';
+import { authenticate, rejectIfAuthenticated } from '../middlewares/authMiddleware';
 import { requireRole } from '../middlewares/roleMiddleware';
 export class UserController implements IController {
     public readonly path: string = '/auth/';
@@ -26,10 +26,10 @@ export class UserController implements IController {
 
     private initialiseRoutes() {
         this.router.get('/health', (_req, res) => res.status(200).json({ service: 'auth', status: 'up' }));
-        this.router.get('/users', authenticate, requireRole(['Admin']), this.getAllUsers.bind(this));
-        this.router.delete('/users/:username', authenticate, requireRole(['Admin']), this.deleteUser.bind(this));
+        this.router.get('/users', authenticate, requireRole(['admin']), this.getAllUsers.bind(this));
+        this.router.delete('/users/:username', authenticate, requireRole(['admin']), this.deleteUser.bind(this));
         this.router.post('/login', this.login.bind(this));
-        this.router.post('/register', this.register.bind(this));
+        this.router.post('/register', rejectIfAuthenticated, this.register.bind(this));
         this.router.get('/validate', this.validate.bind(this));
     }
 

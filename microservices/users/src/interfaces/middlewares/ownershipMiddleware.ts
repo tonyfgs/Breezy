@@ -5,7 +5,7 @@ import { NextFunction } from 'express';
 export const requireProfileOwnershipOrAdmin = (req: any, res: any, next: NextFunction) => {
     // Vérifier que l'utilisateur est bien connecté (doit être placé après authenticate)
     if (!req.user) {
-        return res.status(401).json({ message: 'Utilisateur non authentifié' });
+        return res.status(401).json({ message: 'Unauthorized - User not authenticated' });
     }
 
     const currentUserId = req.user.id;
@@ -16,11 +16,11 @@ export const requireProfileOwnershipOrAdmin = (req: any, res: any, next: NextFun
 
     // Si la route n'a pas d'ID, on ne peut pas vérifier la propriété ici
     if (!targetProfileId) {
-        return res.status(400).json({ message: 'ID de profil manquant dans la requête' });
+        return res.status(400).json({ message: 'Bad request - Missing profile ID' });
     }
 
     // 1. Les Administrateurs et Modérateurs ont tous les droits
-    if (['Administrateur', 'Modérateur'].includes(currentUserRole)) {
+    if (['admin', 'moderator'].includes(currentUserRole)) {
         return next(); // Autorisé
     }
 
@@ -31,6 +31,6 @@ export const requireProfileOwnershipOrAdmin = (req: any, res: any, next: NextFun
 
     // 3. Dans tous les autres cas, on bloque
     return res.status(403).json({ 
-        message: "Accès refusé - Vous n'êtes pas autorisé à modifier le profil d'un autre utilisateur" 
+        message: "Forbidden - You are not allowed to modify another user's profile" 
     });
 };

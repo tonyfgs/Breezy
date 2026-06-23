@@ -19,7 +19,7 @@ export class FeedController implements IController {
 
     private async getFeed(req: any, res: any): Promise<void> {
         try {
-            if (req.user.id !== req.params.idUser && !['Admin', 'Moderateur'].includes(req.user.role)) {
+            if (req.user.id !== req.params.idUser && !['admin', 'moderator'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Forbidden - Cannot read feed of another user' });
             }
             const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));

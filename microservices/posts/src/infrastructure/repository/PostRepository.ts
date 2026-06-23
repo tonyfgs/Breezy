@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { IPostRepository, PaginationParams } from '../../domain/repositories/IPostRepository';
 import { Post } from '../../domain/entities/Post';
 import { PostMapper } from '../mapper/postMapper';
@@ -20,7 +21,7 @@ export class PostRepository implements IPostRepository {
     }
 
     async getPostsByUser(authorId: string, { page, limit }: PaginationParams): Promise<{ posts: Post[]; total: number }> {
-        const filter = { authorId, parentPostId: null };
+        const filter = { authorId };
         const [results, total] = await Promise.all([
             PostModel.find(filter).skip((page - 1) * limit).limit(limit),
             PostModel.countDocuments(filter),
@@ -61,6 +62,15 @@ export class PostRepository implements IPostRepository {
         const posts = results.map(PostMapper.toDomain);
         const nextCursor = posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
         return { posts, nextCursor };
+    }
+
+    async countCommentsByPosts(postIds: string[]): Promise<Map<string, number>> {
+        const objectIds = postIds.map(id => new mongoose.Types.ObjectId(id));
+        const results = await PostModel.aggregate([
+            { $match: { parentPostId: { $in: objectIds } } },
+            { $group: { _id: '$parentPostId', count: { $sum: 1 } } },
+        ]);
+        return new Map(results.map((r: any) => [r._id.toString(), r.count]));
     }
 
     async deletePost(id: string): Promise<void> {

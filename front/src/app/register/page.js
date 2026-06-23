@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, AtSign, Mail, Lock, Check } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { registerApi } from '../../lib/api/auth.api';
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -22,9 +25,12 @@ function getPasswordRules(password) {
 
 export default function RegisterPage() {
   const { t } = useLanguage();
+  const { login } = useAuth();
+  const router = useRouter();
   const [form, setForm] = useState({ name: '', handle: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [handleAvailable, setHandleAvailable] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const passwordRules = getPasswordRules(form.password);
   const isPasswordValid = Object.values(passwordRules).every(Boolean);
@@ -45,7 +51,6 @@ export default function RegisterPage() {
         }
 
         setErrors(prev => ({ ...prev, handle: '' }));
-        // TODO: API - GET /api/users/check-handle?handle={clean} (avec debounce)
         setHandleAvailable(clean.length >= 3 ? true : null);
         return;
       }
@@ -59,7 +64,7 @@ export default function RegisterPage() {
     };
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = t('auth.nameRequired');
@@ -72,7 +77,17 @@ export default function RegisterPage() {
       return;
     }
 
-    // TODO: API - POST /api/auth/register { name, handle, email, password }
+    setLoading(true);
+    try {
+      await registerApi(form.handle, form.password);
+      await login(form.handle, form.password);
+      router.push('/feed');
+    } catch (err) {
+      if (err.status === 409) setErrors({ handle: t('auth.handleTaken') });
+      else setErrors({ form: t('auth.registerError') });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -170,7 +185,11 @@ export default function RegisterPage() {
                 )}
               </Input>
 
-              <Button type="submit" fullWidth>{t('auth.registerSubmit')}</Button>
+              {errors.form && <p className="auth-error">{errors.form}</p>}
+
+              <Button type="submit" fullWidth disabled={loading}>
+                {loading ? '…' : t('auth.registerSubmit')}
+              </Button>
 
               <p className="auth-legal">
                 {t('auth.legalPrefix')}{' '}

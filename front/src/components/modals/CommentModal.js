@@ -4,22 +4,33 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import Button from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { createPostApi } from '../../lib/api/posts.api';
 
 const MAX_CHARS = 280;
 
-export default function CommentModal({ post, onClose }) {
+export default function CommentModal({ post, onClose, onCommentCreated }) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [content, setContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const remaining = MAX_CHARS - content.length;
   const isOverLimit = remaining < 0;
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!content.trim() || isOverLimit) return;
-
-    // TODO: API - POST /api/posts { txt_content: content, sk_parentPostId: post.sk_id }
-    onClose();
+    if (!content.trim() || isOverLimit || !user || submitting) return;
+    setSubmitting(true);
+    try {
+      await createPostApi(String(user.id), content, post.sk_id);
+      onCommentCreated?.();
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleOverlayClick(e) {
@@ -54,7 +65,7 @@ export default function CommentModal({ post, onClose }) {
                 {remaining}
               </span>
             )}
-            <Button type="submit" disabled={!content.trim() || isOverLimit}>
+            <Button type="submit" disabled={!content.trim() || isOverLimit || submitting}>
               {t('common.reply')}
             </Button>
           </div>

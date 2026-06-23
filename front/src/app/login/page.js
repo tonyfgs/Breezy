@@ -3,15 +3,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { AtSign, Lock } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
   const { t } = useLanguage();
+  const { login } = useAuth();
+  const router = useRouter();
   const [form, setForm] = useState({ handle: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   function handleChange(field) {
     return (e) => {
@@ -20,14 +25,21 @@ export default function LoginPage() {
     };
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.handle.trim() || !form.password) {
       setError(t('auth.loginError'));
       return;
     }
-
-    // TODO: API - POST /api/auth/login { handle, password }
+    setLoading(true);
+    try {
+      await login(form.handle, form.password);
+      router.push('/feed');
+    } catch (err) {
+      setError(err.status === 401 ? t('auth.loginInvalid') : err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -92,7 +104,9 @@ export default function LoginPage() {
                 <Link href="/forgot-password" className="auth-forgot-link">{t('auth.forgotPassword')}</Link>
               </div>
 
-              <Button type="submit" fullWidth>{t('auth.loginSubmit')}</Button>
+              <Button type="submit" fullWidth disabled={loading}>
+                {loading ? '…' : t('auth.loginSubmit')}
+              </Button>
             </form>
 
             <p className="auth-switch">

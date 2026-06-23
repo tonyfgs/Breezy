@@ -1,30 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '../../components/layout/AppLayout';
 import SearchBar from '../../components/ui/SearchBar';
 import UserRow from '../../components/user/UserRow';
 import { useLanguage } from '../../context/LanguageContext';
+import { getAllProfilesApi } from '../../lib/api/users.api';
 
-// TODO: API - GET /users/search?q=query (endpoint à définir côté backend)
-const MOCK_USERS = [
-  { sk_id: 'user_001', nm_username: 'camille', txt_bio: 'Développeuse front-end · café · balcon', fl_active: true },
-  { sk_id: 'user_002', nm_username: 'theom', txt_bio: 'Designer UI/UX basé à Lyon', fl_active: true },
-  { sk_id: 'user_003', nm_username: 'ines.b', txt_bio: 'Photographe amateur · nature', fl_active: true },
-  { sk_id: 'user_004', nm_username: 'maxg', txt_bio: '', fl_active: true },
-  { sk_id: 'user_005', nm_username: 'sasha_dev', txt_bio: 'Fullstack JS · open source', fl_active: true },
-];
-
-export default function SearchPage() {
+function SearchContent() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [allUsers, setAllUsers] = useState([]);
+
+  useEffect(() => {
+    getAllProfilesApi()
+      .then(profiles => setAllUsers(
+        profiles.map(p => ({
+          sk_id: p.id,
+          nm_username: p.username,
+          txt_bio: p.bio ?? '',
+          fl_active: p.fl_banned === 0,
+        }))
+      ))
+      .catch(console.error);
+  }, []);
 
   const trimmed = query.trim();
   const results = trimmed
-    ? MOCK_USERS.filter(u => u.nm_username.toLowerCase().includes(trimmed.toLowerCase()))
-    : MOCK_USERS;
+    ? allUsers.filter(u => u.nm_username.toLowerCase().includes(trimmed.toLowerCase()))
+    : allUsers;
 
   return (
     <AppLayout>
@@ -51,5 +57,13 @@ export default function SearchPage() {
         </div>
       )}
     </AppLayout>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense>
+      <SearchContent />
+    </Suspense>
   );
 }

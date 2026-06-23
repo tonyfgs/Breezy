@@ -7,6 +7,8 @@ import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
 import ReportModal from '../modals/ReportModal';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { likePostApi, unlikePostApi } from '../../lib/api/posts.api';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -18,15 +20,32 @@ function formatRelativeTime(isoString) {
 export default function PostCard({ post }) {
   const router = useRouter();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [liked, setLiked] = useState(post.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(post.nb_likesCount ?? 0);
+  const [commentCount, setCommentCount] = useState(post.nb_commentsCount ?? 0);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  function handleLike(e) {
+  async function handleLike(e) {
     e.stopPropagation();
-    setLikeCount(prev => liked ? prev - 1 : prev + 1);
-    setLiked(prev => !prev);
+    if (!user) return;
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
+    try {
+      if (newLiked) await likePostApi(post.sk_id, String(user.id));
+      else await unlikePostApi(post.sk_id, String(user.id));
+    } catch (err) {
+      if (err?.status === 409) {
+        // Déjà liké en base — on corrige l'état local
+        setLiked(true);
+        setLikeCount(prev => prev - 1);
+      } else {
+        setLiked(!newLiked);
+        setLikeCount(prev => newLiked ? prev - 1 : prev + 1);
+      }
+    }
   }
 
   function handleComment(e) {
@@ -68,13 +87,17 @@ export default function PostCard({ post }) {
 
           <button className="post-card__action" aria-label={t('common.comment')} onClick={handleComment}>
             <MessageCircle size={16} />
-            <span>{post.nb_commentsCount}</span>
+            <span>{commentCount}</span>
           </button>
         </div>
       </article>
 
       {showCommentModal && (
-        <CommentModal post={post} onClose={() => setShowCommentModal(false)} />
+        <CommentModal
+          post={post}
+          onClose={() => setShowCommentModal(false)}
+          onCommentCreated={() => setCommentCount(c => c + 1)}
+        />
       )}
       {showReportModal && (
         <ReportModal targetId={post.sk_id} targetType="post" onClose={() => setShowReportModal(false)} />

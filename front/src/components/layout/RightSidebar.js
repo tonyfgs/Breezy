@@ -1,26 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Avatar from '../ui/Avatar';
 import { useLanguage } from '../../context/LanguageContext';
-
-// TODO: API - GET /api/users/suggestions
-const MOCK_SUGGESTIONS = [
-  { sk_id: 'user_004', nm_username: 'atelier.lum', displayName: 'Atelier Lumière', fl_followed: false },
-  { sk_id: 'user_005', nm_username: 'noev', displayName: 'Noé Vidal', fl_followed: true },
-  { sk_id: 'user_006', nm_username: 'salome', displayName: 'Salomé', fl_followed: false },
-];
+import { useAuth } from '../../context/AuthContext';
+import { getAllProfilesApi } from '../../lib/api/users.api';
+import { getFollowingApi, followApi, unfollowApi } from '../../lib/api/follows.api';
 
 export default function RightSidebar() {
   const { t } = useLanguage();
-  const [suggestions, setSuggestions] = useState(MOCK_SUGGESTIONS);
+  const { user } = useAuth();
+  const [suggestions, setSuggestions] = useState([]);
 
-  function toggleFollow(userId) {
-    // TODO: API - POST/DELETE /api/follow/:userId
+  useEffect(() => {
+    if (!user) return;
+    const myId = String(user.id);
+    const profileId = user.profileId ?? myId;
+    Promise.all([
+      getAllProfilesApi().catch(() => []),
+      getFollowingApi(profileId).catch(() => []),
+    ]).then(([allUsers, following]) => {
+      const followingSet = new Set(following);
+      const filtered = allUsers
+        .filter(u => u.id !== profileId && !followingSet.has(u.id))
+        .slice(0, 3)
+        .map(u => ({ sk_id: u.id, nm_username: u.username, fl_followed: false }));
+      setSuggestions(filtered);
+    });
+  }, [user]);
+
+  async function toggleFollow(userId) {
+    if (!user) return;
+    const myId = user.profileId ?? String(user.id);
+    const isFollowed = suggestions.find(s => s.sk_id === userId)?.fl_followed;
+
     setSuggestions(prev =>
-      prev.map(u => u.sk_id === userId ? { ...u, fl_followed: !u.fl_followed } : u)
+      prev.map(s => s.sk_id === userId ? { ...s, fl_followed: !isFollowed } : s)
     );
+
+    const apiCall = isFollowed ? unfollowApi(myId, userId) : followApi(myId, userId);
+    await apiCall.catch(() => {
+      setSuggestions(prev =>
+        prev.map(s => s.sk_id === userId ? { ...s, fl_followed: isFollowed } : s)
+      );
+    });
   }
 
   return (
@@ -28,20 +52,20 @@ export default function RightSidebar() {
       <div className="right-sidebar__suggestions">
         <h2 className="right-sidebar__title">{t('sidebar.toFollow')}</h2>
         <ul className="right-sidebar__list">
-          {suggestions.map(user => (
-            <li key={user.sk_id} className="suggestion-row">
-              <Link href={`/profile/${user.nm_username}`} className="suggestion-row__user">
-                <Avatar name={user.nm_username} size="sm" />
+          {suggestions.map(suggestion => (
+            <li key={suggestion.sk_id} className="suggestion-row">
+              <Link href={`/profile/${suggestion.nm_username}`} className="suggestion-row__user">
+                <Avatar name={suggestion.nm_username} size="sm" />
                 <div className="suggestion-row__info">
-                  <span className="suggestion-row__name">{user.displayName}</span>
-                  <span className="suggestion-row__handle">@{user.nm_username}</span>
+                  <span className="suggestion-row__name">{suggestion.nm_username}</span>
+                  <span className="suggestion-row__handle">@{suggestion.nm_username}</span>
                 </div>
               </Link>
               <button
-                className={`suggestion-row__follow-btn${user.fl_followed ? ' suggestion-row__follow-btn--following' : ''}`}
-                onClick={() => toggleFollow(user.sk_id)}
+                className={`suggestion-row__follow-btn${suggestion.fl_followed ? ' suggestion-row__follow-btn--following' : ''}`}
+                onClick={() => toggleFollow(suggestion.sk_id)}
               >
-                {user.fl_followed ? t('sidebar.following') : t('sidebar.follow')}
+                {suggestion.fl_followed ? t('sidebar.following') : t('sidebar.follow')}
               </button>
             </li>
           ))}

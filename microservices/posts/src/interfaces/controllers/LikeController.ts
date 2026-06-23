@@ -4,6 +4,7 @@ import { LikePostUseCase } from '../../application/usecases/LikePostUseCase';
 import { UnlikePostUseCase } from '../../application/usecases/UnlikePostUseCase';
 import { GetLikesByPostUseCase } from '../../application/usecases/GetLikesByPostUseCase';
 import { GetLikeCountByPostUseCase } from '../../application/usecases/GetLikeCountByPostUseCase';
+import { GetLikeByUserUseCase } from '../../application/usecases/GetLikeByUserUseCase';
 
 export class LikeController implements IController {
     public readonly path = '/posts';
@@ -14,12 +15,14 @@ export class LikeController implements IController {
         private readonly unlikePostUseCase: UnlikePostUseCase,
         private readonly getLikesByPostUseCase: GetLikesByPostUseCase,
         private readonly getLikeCountByPostUseCase: GetLikeCountByPostUseCase,
+        private readonly getLikeByUserUseCase: GetLikeByUserUseCase,
     ) {
         this.initialiseRoutes();
     }
 
     private initialiseRoutes() {
         this.router.get('/:postId/likes/count', this.getLikeCount.bind(this));
+        this.router.get('/:postId/likes/check/:userId', this.checkLike.bind(this));
         this.router.get('/:postId/likes', this.getLikes.bind(this));
         this.router.post('/:postId/likes', this.likePost.bind(this));
         this.router.delete('/:postId/likes/:userId', this.unlikePost.bind(this));
@@ -28,6 +31,11 @@ export class LikeController implements IController {
     private async getLikeCount(req: any, res: any): Promise<void> {
         const result = await this.getLikeCountByPostUseCase.execute(req.params.postId);
         res.status(200).json(result);
+    }
+
+    private async checkLike(req: any, res: any): Promise<void> {
+        const liked = await this.getLikeByUserUseCase.execute(req.params.postId, req.params.userId);
+        res.status(200).json({ liked });
     }
 
     private async getLikes(req: any, res: any): Promise<void> {

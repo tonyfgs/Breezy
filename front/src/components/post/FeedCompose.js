@@ -3,13 +3,16 @@
 import { useRef, useState } from 'react';
 import Avatar from '../ui/Avatar';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { createPostApi } from '../../lib/api/posts.api';
 
 const MAX_LENGTH = 280;
-const CURRENT_USER = { nm_username: 'camille', displayName: 'Camille Roche' };
 
-export default function FeedCompose() {
+export default function FeedCompose({ onPostCreated }) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [content, setContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef(null);
 
   const remaining = MAX_LENGTH - content.length;
@@ -24,17 +27,25 @@ export default function FeedCompose() {
     }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!isValid) return;
-    // TODO: API - POST /api/posts { content }
-    setContent('');
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    if (!isValid || !user || submitting) return;
+    setSubmitting(true);
+    try {
+      const post = await createPostApi(String(user.id), content);
+      setContent('');
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      onPostCreated?.(post);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="feed-compose">
-      <Avatar name={CURRENT_USER.nm_username} size="md" />
+      <Avatar name={user?.username ?? ''} size="md" />
       <form className="feed-compose__form" onSubmit={handleSubmit}>
         <textarea
           ref={textareaRef}
@@ -52,7 +63,7 @@ export default function FeedCompose() {
           <button
             type="submit"
             className="feed-compose__submit"
-            disabled={!isValid}
+            disabled={!isValid || submitting}
           >
             {t('common.publish')}
           </button>

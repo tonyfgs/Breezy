@@ -24,7 +24,7 @@ export default function FeedPage() {
   const loadFeed = useCallback(() => {
     if (!user) return;
     setFeedLoading(true);
-    getFeedApi(user.id)
+    getFeedApi(user.profileId)
       .then(({ posts }) => setPosts(posts))
       .catch(err => setError(err.message))
       .finally(() => setFeedLoading(false));

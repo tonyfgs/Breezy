@@ -8,9 +8,8 @@ export function getProfileApi(id) {
   return apiClient(`/users/${id}`);
 }
 
-export async function getProfileByUsernameApi(username) {
-  const profiles = await apiClient('/users/');
-  return profiles.find(p => p.username === username) ?? null;
+export function getProfileByUsernameApi(username) {
+  return apiClient(`/users/username/${username}`);
 }
 
 export function updateProfileApi(id, data) {

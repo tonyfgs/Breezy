@@ -109,7 +109,7 @@ export default function ModerationPage() {
         <div className="moderation-stats">
           {MOCK_STATS.map(stat => (
             <div
-              key={stat.label}
+              key={stat.labelKey}
               className={`stat-card${stat.fl_desktop_only ? ' stat-card--desktop-only' : ''}`}
             >
               <span className={`stat-card__value${stat.cd_trend === 'warn' ? ' stat-card__value--warn' : ''}`}>

@@ -1,5 +1,6 @@
 import {IFollowRepository} from "../../domain/repositories/IFollowRepository";
 import {FollowModel} from "../models/FollowModel";
+import {ProfileModel} from "../models/ProfileModel";
 
 export class FollowRepository implements IFollowRepository {
 
@@ -16,7 +17,10 @@ export class FollowRepository implements IFollowRepository {
      */
     async getFollowing(id: string): Promise<Array<string>> {
         const results = await FollowModel.find({ follwerId: id });
-        return results.map(f => f.followingId);
+        const followingIds = results.map(f => f.followingId);
+        const activeProfils = await ProfileModel.find({ _id: { $in: followingIds }, fl_banned: { $ne: 1 } }, '_id');
+        const activeIds = new Set(activeProfils.map(p => p._id.toString()));
+        return followingIds.filter(id => activeIds.has(id));
     }
 
     /**

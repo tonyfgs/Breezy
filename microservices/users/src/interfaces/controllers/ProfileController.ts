@@ -38,8 +38,8 @@ export class ProfileController implements IController{
     }
 
     private initialiseRoutes() {
-        // GET /users/ : Securise, necessite d'etre authentifie
-        this.router.get(`/`, authenticate, this.getAllProfiles.bind(this));
+        // GET /users/ : Securise, necessite d'etre authentifie (ou appel inter-service)
+        this.router.get(`/`, authenticateOrService, this.getAllProfiles.bind(this));
 
         // GET /users/username/:username : Securise, necessite d'etre authentifie
         this.router.get(`/username/:username`, authenticateOrService, this.getProfileByUsername.bind(this));
@@ -56,8 +56,8 @@ export class ProfileController implements IController{
         // DELETE /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs
         this.router.delete(`/:id`, authenticate, requireProfileOwnershipOrAdmin, this.deleteProfile.bind(this));
 
-        // PATCH /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs
-        this.router.patch(`/:id`, authenticate, requireProfileOwnershipOrAdmin, this.patchProfile.bind(this));
+        // PATCH /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs (ou appel inter-service)
+        this.router.patch(`/:id`, authenticateOrService, requireProfileOwnershipOrAdmin, this.patchProfile.bind(this));
     }
 
     private async getAllProfiles(_req: any, res: any): Promise<void> {

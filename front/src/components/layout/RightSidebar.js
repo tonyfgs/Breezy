@@ -16,14 +16,13 @@ export default function RightSidebar() {
   useEffect(() => {
     if (!user) return;
     const myId = String(user.id);
-    const profileId = user.profileId ?? myId;
     Promise.all([
       getAllProfilesApi().catch(() => []),
-      getFollowingApi(profileId).catch(() => []),
+      getFollowingApi(myId).catch(() => []),
     ]).then(([allUsers, following]) => {
       const followingSet = new Set(following);
       const filtered = allUsers
-        .filter(u => u.id !== profileId && !followingSet.has(u.id))
+        .filter(u => u.username !== user.username && !followingSet.has(u.id))
         .slice(0, 3)
         .map(u => ({ sk_id: u.id, nm_username: u.username, fl_followed: false }));
       setSuggestions(filtered);
@@ -32,7 +31,7 @@ export default function RightSidebar() {
 
   async function toggleFollow(userId) {
     if (!user) return;
-    const myId = user.profileId ?? String(user.id);
+    const myId = String(user.id);
     const isFollowed = suggestions.find(s => s.sk_id === userId)?.fl_followed;
 
     setSuggestions(prev =>

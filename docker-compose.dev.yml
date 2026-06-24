@@ -96,6 +96,7 @@ services:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://posts-db:27017/breezy-posts
       - JWT_SECRET=secret
+      - SERVICE_SECRET=breezy-internal
     depends_on:
       - posts-db
 
@@ -123,6 +124,7 @@ services:
       - BASE_URL_USERS=http://users:4002
       - BASE_URL_MODERATION=http://moderation:4005
       - JWT_SECRET=secret
+      - SERVICE_SECRET=breezy-internal
     depends_on:
       - posts
       - users

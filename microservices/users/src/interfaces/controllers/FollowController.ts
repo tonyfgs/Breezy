@@ -5,6 +5,7 @@ import {GetFollowersUseCase} from "../../application/usecases/GetFollowersUseCas
 import {GetFollowingUseCase} from "../../application/usecases/GetFollowingUseCase";
 import {DeleteFollowUseCase} from "../../application/usecases/DeleteFollowUseCase";
 import {authenticate} from "../middlewares/authMiddleware";
+import {authenticateOrService} from "../middlewares/serviceMiddleware";
 
 export class FollowController implements IController {
 
@@ -31,8 +32,8 @@ export class FollowController implements IController {
 
     private initialiseRoutes() {
         this.router.post(`/`, authenticate, this.createFollow.bind(this));
-        this.router.get(`/:id/followers`, authenticate, this.getFollowers.bind(this));
-        this.router.get(`/:id/following`, authenticate, this.getFollowing.bind(this));
+        this.router.get(`/:id/followers`, authenticateOrService, this.getFollowers.bind(this));
+        this.router.get(`/:id/following`, authenticateOrService, this.getFollowing.bind(this));
         this.router.delete(`/`, authenticate, this.deleteFollow.bind(this));
     }
 

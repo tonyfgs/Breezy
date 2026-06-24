@@ -9,6 +9,7 @@ import { GetPostsByAuthorsUseCase } from '../../application/usecases/GetPostsByA
 import { UpdatePostUseCase } from '../../application/usecases/UpdatePostUseCase';
 import { DeletePostUseCase } from '../../application/usecases/DeletePostUseCase';
 import { authenticate } from '../middlewares/authMiddleware';
+import { authenticateOrService } from '../middlewares/serviceMiddleware';
 
 export class PostController implements IController {
     public readonly path = '/posts';
@@ -32,7 +33,7 @@ export class PostController implements IController {
         this.router.get('/user/:userId', authenticate, this.getPostsByUser.bind(this));
         this.router.get('/:id', authenticate, this.getPost.bind(this));
         this.router.get('/:id/comments', authenticate, this.getComments.bind(this));
-        this.router.post('/by-authors', authenticate, this.getPostsByAuthors.bind(this));
+        this.router.post('/by-authors', authenticateOrService, this.getPostsByAuthors.bind(this));
         this.router.post('/', authenticate, this.createPost.bind(this));
         this.router.put('/:id', authenticate, this.updatePost.bind(this));
         this.router.patch('/:id', authenticate, this.patchPost.bind(this));

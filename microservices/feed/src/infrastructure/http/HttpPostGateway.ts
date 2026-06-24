@@ -12,7 +12,10 @@ export class HttpPostGateway implements IPostGateway{
         const url = `${this.baseUrl}/posts/by-authors`;
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-service-secret': process.env.SERVICE_SECRET || '',
+            },
             body: JSON.stringify({ authorIds: userIds, limit, cursor })
         });
 

@@ -6,10 +6,12 @@ import AppLayout from '../../components/layout/AppLayout';
 import SearchBar from '../../components/ui/SearchBar';
 import UserRow from '../../components/user/UserRow';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import { getAllProfilesApi } from '../../lib/api/users.api';
 
 function SearchContent() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [allUsers, setAllUsers] = useState([]);
@@ -17,15 +19,17 @@ function SearchContent() {
   useEffect(() => {
     getAllProfilesApi()
       .then(profiles => setAllUsers(
-        profiles.map(p => ({
-          sk_id: p.id,
-          nm_username: p.username,
-          txt_bio: p.bio ?? '',
-          fl_active: p.fl_banned === 0,
-        }))
+        profiles
+          .filter(p => p.id !== user?.profileId && p.fl_banned !== 1)
+          .map(p => ({
+            sk_id: p.id,
+            nm_username: p.username,
+            txt_bio: p.bio ?? '',
+            fl_active: p.fl_banned === 0,
+          }))
       ))
       .catch(console.error);
-  }, []);
+  }, [user]);
 
   const trimmed = query.trim();
   const results = trimmed

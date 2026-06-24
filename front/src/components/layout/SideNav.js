@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Home, Search, User, Settings, PenLine, MoreHorizontal, Shield } from 'lucide-react';
+import { Home, Search, User, Settings, PenLine, LogOut, Shield } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CreatePostModal from '../modals/CreatePostModal';
 import { useLanguage } from '../../context/LanguageContext';
@@ -12,17 +12,25 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function SideNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const canModerate = ['moderator', 'admin'].includes(user?.role);
 
   const NAV_ITEMS = [
     { href: '/feed', icon: Home, label: t('nav.feed') },
     { href: '/search', icon: Search, label: t('nav.discover') },
     { href: '/profile/me', icon: User, label: t('nav.profile') },
     { href: '/settings', icon: Settings, label: t('nav.settings') },
-    { href: '/moderation', icon: Shield, label: t('nav.moderation') },
+    ...(canModerate ? [{ href: '/moderation', icon: Shield, label: t('nav.moderation') }] : []),
   ];
+
+  function handleLogout() {
+    logout();
+    router.push('/login');
+  }
 
   return (
     <>
@@ -60,16 +68,18 @@ export default function SideNav() {
           {t('nav.newPost')}
         </button>
 
-        <Link href={`/profile/${user?.username ?? 'me'}`} className="side-nav__user">
-          <Avatar name={user?.username ?? ''} size="sm" />
-          <div className="side-nav__user-info">
-            <span className="side-nav__user-name">{user?.username ?? ''}</span>
-            <span className="side-nav__user-handle">@{user?.username ?? ''}</span>
-          </div>
-          <button className="side-nav__user-more" aria-label={t('nav.moreOptions')} onClick={e => e.preventDefault()}>
-            <MoreHorizontal size={18} />
+        <div className="side-nav__user">
+          <Link href={`/profile/${user?.username ?? 'me'}`} className="side-nav__user-link">
+            <Avatar name={user?.username ?? ''} size="sm" />
+            <div className="side-nav__user-info">
+              <span className="side-nav__user-name">{user?.username ?? ''}</span>
+              <span className="side-nav__user-handle">@{user?.username ?? ''}</span>
+            </div>
+          </Link>
+          <button className="side-nav__logout-btn" onClick={handleLogout} aria-label={t('settings.logout')}>
+            <LogOut size={18} />
           </button>
-        </Link>
+        </div>
       </nav>
 
       {showCreateModal && <CreatePostModal onClose={() => setShowCreateModal(false)} />}

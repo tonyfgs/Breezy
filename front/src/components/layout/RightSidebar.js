@@ -22,7 +22,7 @@ export default function RightSidebar() {
     ]).then(([allUsers, following]) => {
       const followingSet = new Set(following);
       const filtered = allUsers
-        .filter(u => u.username !== user.username && !followingSet.has(u.id))
+        .filter(u => u.username !== user.username && !followingSet.has(u.id) && u.fl_banned !== 1)
         .slice(0, 3)
         .map(u => ({ sk_id: u.id, nm_username: u.username, fl_followed: false }));
       setSuggestions(filtered);

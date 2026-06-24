@@ -25,9 +25,8 @@ export class LikeController implements IController {
         this.router.get('/:postId/likes/count', this.getLikeCount.bind(this));
         this.router.get('/:postId/likes/check/:userId', this.checkLike.bind(this));
         this.router.get('/:postId/likes', this.getLikes.bind(this));
-        this.router.post('/:postId/likes', this.likePost.bind(this));
-        this.router.delete('/:postId/likes/:userId', this.unlikePost.bind(this));
-
+        this.router.post('/:postId/likes', authenticate, this.likePost.bind(this));
+        this.router.delete('/:postId/likes/:userId', authenticate, this.unlikePost.bind(this));
     }
 
     private async getLikeCount(req: any, res: any): Promise<void> {

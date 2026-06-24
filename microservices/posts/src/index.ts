@@ -33,10 +33,10 @@ const likeRepository = new LikeRepository();
 
 const postController = new PostController(
     new CreatePostUseCase(postRepository),
-    new GetPostUseCase(postRepository),
+    new GetPostUseCase(postRepository, likeRepository),
     new GetAllPostsUseCase(postRepository),
-    new GetPostCommentsUseCase(postRepository),
-    new GetPostsByUserUseCase(postRepository),
+    new GetPostCommentsUseCase(postRepository, likeRepository),
+    new GetPostsByUserUseCase(postRepository, likeRepository),
     new UpdatePostUseCase(postRepository),
     new DeletePostUseCase(postRepository),
     new GetPostsByAuthorsUseCase(postRepository, likeRepository),

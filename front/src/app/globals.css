@@ -1935,14 +1935,24 @@ img {
   .side-nav__user {
     display: flex;
     align-items: center;
+    gap: var(--space-1);
+  }
+
+  .side-nav__user-link {
+    display: flex;
+    align-items: center;
     gap: var(--space-3);
+    flex: 1;
+    min-width: 0;
     padding: var(--space-3);
     border-radius: var(--radius-md);
     transition: background-color 0.15s;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
   }
 
-  .side-nav__user:hover {
+  .side-nav__user-link:hover {
     background-color: var(--color-hover-soft);
   }
 
@@ -1969,16 +1979,23 @@ img {
     color: var(--color-text-secondary);
   }
 
-  .side-nav__user-more {
+  .side-nav__logout-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    background: none;
+    border: none;
     color: var(--color-text-secondary);
-    transition: color 0.15s;
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
   }
 
-  .side-nav__user-more:hover {
+  .side-nav__logout-btn:hover {
     color: var(--color-text-primary);
+    background-color: var(--color-hover-soft);
   }
 }
 
@@ -2392,6 +2409,43 @@ img {
   color: var(--color-text-secondary);
 }
 
+.report-item--resolved {
+  opacity: 0.6;
+}
+
+.report-status {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.report-status--pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.report-status--reviewed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.report-status--dismissed {
+  background-color: var(--color-tint-neutral);
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .report-status--pending {
+  background-color: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .report-status--reviewed {
+  background-color: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+
 .report-tag {
   display: none;
   align-items: center;
@@ -2464,7 +2518,6 @@ img {
 .member-list {
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
 
@@ -2476,8 +2529,13 @@ img {
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+.member-row:first-child {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
 .member-row:last-child {
   border-bottom: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .member-row__info {

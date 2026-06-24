@@ -1,40 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, Lock, Bell } from 'lucide-react';
 import AppLayout from '../../../components/layout/AppLayout';
 import Avatar from '../../../components/ui/Avatar';
 import { useLanguage } from '../../../context/LanguageContext';
-
-// TODO: API - GET /api/moderation/queue?reason={filter}&page={page}&limit=20
-// { items: ReportItem[], nb_total, nb_pages }
-const MOCK_QUEUE = [
-  {
-    sk_id: 'r1',
-    user: { nm_username: 'promo92', nm_display: 'compte_promo_92' },
-    ts_relative: 'il y a 12 min',
-    txt_content: 'Gagne 500€/jour depuis chez toi !!! Clique sur le lien dans ma bio pour rejoindre le groupe privé →',
-    cd_reason: 'spam',
-    nb_reports: 3,
-  },
-  {
-    sk_id: 'r2',
-    user: { nm_username: 'theom', nm_display: 'Théo Mercier' },
-    ts_relative: 'il y a 1 h',
-    txt_content: 'Réponse jugée agressive par un membre. À relire dans le contexte du fil avant décision.',
-    cd_reason: 'hors_sujet',
-    nb_reports: 1,
-  },
-  {
-    sk_id: 'r3',
-    user: { nm_username: 'alex_b', nm_display: 'Alexandre Bonnet' },
-    ts_relative: 'il y a 3 h',
-    txt_content: 'Contenu signalé pour discours inapproprié envers un autre membre de la communauté.',
-    cd_reason: 'harassment',
-    nb_reports: 2,
-  },
-];
+import { useAuth } from '../../../context/AuthContext';
+import { getAllReportsApi, updateReportApi, createSanctionApi } from '../../../lib/api/moderation.api';
+import { getAllProfilesApi } from '../../../lib/api/users.api';
+import { getPostRawApi } from '../../../lib/api/posts.api';
 
 const REASON_FILTERS = ['all', 'spam', 'hors_sujet', 'harassment', 'inappropriate'];
 
@@ -53,22 +28,103 @@ const FILTER_KEYS = {
   inappropriate: 'tagInappropriate',
 };
 
+function formatRelative(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  return `il y a ${Math.floor(h / 24)} j`;
+}
+
 export default function ModerationQueuePage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [reports, setReports] = useState([]);
+
+  useEffect(() => {
+    Promise.all([
+      getAllReportsApi().catch(() => []),
+      getAllProfilesApi().catch(() => []),
+    ]).then(async ([rawReports, users]) => {
+      const userById = Object.fromEntries(users.map(u => [u.id, u]));
+
+      const postIds = [...new Set(rawReports.filter(r => r.targetType === 'post').map(r => r.targetId))];
+      const posts = await Promise.all(postIds.map(id => getPostRawApi(id).catch(() => null)));
+      const postById = Object.fromEntries(postIds.map((id, i) => [id, posts[i]]));
+
+      const items = rawReports.map(r => {
+        const reporter = userById[r.reporterId];
+        let targetName, postContent, authorUsername;
+
+        if (r.targetType === 'post') {
+          const post = postById[r.targetId];
+          const author = post ? userById[post.authorId] : null;
+          authorUsername = author?.username ?? post?.authorId ?? r.targetId;
+          targetName = authorUsername;
+          postContent = post?.content ?? null;
+        } else {
+          const target = userById[r.targetId];
+          targetName = target?.username ?? r.targetId;
+          postContent = null;
+          authorUsername = targetName;
+        }
+
+        return {
+          id: r.id,
+          targetId: r.targetId,
+          targetType: r.targetType,
+          targetName,
+          authorUsername,
+          postContent,
+          reporter: reporter?.username ?? r.reporterId,
+          cd_reason: r.reason,
+          status: r.status,
+          ts_relative: formatRelative(r.createdAt),
+        };
+      }).sort((a, b) => {
+        const order = { pending: 0, reviewed: 1, dismissed: 2 };
+        return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+      });
+
+      setReports(items);
+    });
+  }, []);
+
+  async function handleKeepReport(reportId) {
+    await updateReportApi(reportId, { status: 'reviewed' }).catch(console.error);
+    setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'reviewed' } : r));
+  }
+
+  async function handleReviewReport(reportId) {
+    await updateReportApi(reportId, { status: 'reviewed' }).catch(console.error);
+    setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'reviewed' } : r));
+  }
+
+  async function handleBanReport(reportId, targetId, targetType, reason) {
+    await Promise.all([
+      createSanctionApi({
+        targetId,
+        targetType,
+        moderatorId: user?.profileId,
+        reason,
+        reportId,
+        type: 'ban',
+      }),
+      updateReportApi(reportId, { status: 'reviewed' }),
+    ]).catch(console.error);
+    setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'reviewed' } : r));
+  }
+
+  function getReasonLabel(cd_reason) {
+    const tag = REASON_TAGS[cd_reason];
+    return tag ? t(`moderation.${tag}`) : cd_reason;
+  }
 
   const filtered = activeFilter === 'all'
-    ? MOCK_QUEUE
-    : MOCK_QUEUE.filter(item => item.cd_reason === activeFilter);
-
-  function getReasonLabel(cd_reason, nb_reports) {
-    const tag = REASON_TAGS[cd_reason];
-    const label = tag ? t(`moderation.${tag}`) : cd_reason;
-    const count = nb_reports === 1
-      ? t('moderation.reportCount', { count: nb_reports })
-      : t('moderation.reportCountPlural', { count: nb_reports });
-    return `${label} · ${count}`;
-  }
+    ? reports
+    : reports.filter(r => r.cd_reason === activeFilter);
 
   return (
     <AppLayout noSidebar>
@@ -102,34 +158,40 @@ export default function ModerationQueuePage() {
         ) : (
           <div className="report-queue report-queue--full">
             {filtered.map(item => (
-              <div key={item.sk_id} className="report-item">
+              <div key={item.id} className={`report-item${item.status !== 'pending' ? ' report-item--resolved' : ''}`}>
                 <div className="report-item__user-row">
-                  <Avatar name={item.user.nm_display} size="md" />
+                  <Avatar name={item.authorUsername} size="md" />
                   <div className="report-item__user-info">
-                    <span className="report-item__name">{item.user.nm_display}</span>
-                    <span className="report-item__time">{item.ts_relative}</span>
+                    <span className="report-item__name">@{item.authorUsername}</span>
+                    <span className="report-item__time">
+                      {t('moderation.reportedBy')} @{item.reporter} · {item.ts_relative}
+                    </span>
                   </div>
                   <span className="report-tag report-tag--visible">
                     <Bell size={10} />
-                    {getReasonLabel(item.cd_reason, item.nb_reports)}
+                    {getReasonLabel(item.cd_reason)}
+                  </span>
+                  <span className={`report-status report-status--${item.status}`}>
+                    {t(`moderation.status_${item.status}`)}
                   </span>
                 </div>
 
-                <p className="report-item__content">{item.txt_content}</p>
+                {item.postContent && (
+                  <p className="report-item__content">{item.postContent}</p>
+                )}
 
-                <div className="report-item__actions">
-                  <button className="report-action-btn report-action-btn--keep">
-                    <Check size={14} strokeWidth={2.5} />
-                    {t('moderation.actionKeep')}
-                  </button>
-                  <button className="report-action-btn report-action-btn--hide">
-                    {t('moderation.actionHide')}
-                  </button>
-                  <button className="report-action-btn report-action-btn--ban report-action-btn--always-visible">
-                    <Lock size={13} />
-                    {t('moderation.actionBan')}
-                  </button>
-                </div>
+                {item.status === 'pending' && (
+                  <div className="report-item__actions">
+                    <button className="report-action-btn report-action-btn--keep" onClick={() => handleKeepReport(item.id)}>
+                      <Check size={14} strokeWidth={2.5} />
+                      {t('moderation.actionKeep')}
+                    </button>
+                    <button className="report-action-btn report-action-btn--ban report-action-btn--always-visible" onClick={() => handleBanReport(item.id, item.targetId, item.targetType, item.cd_reason)}>
+                      <Lock size={13} />
+                      {t('moderation.actionBan')}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -27,6 +27,10 @@ export function createPostApi(authorId, content, parentPostId = null) {
   });
 }
 
+export function getPostRawApi(id) {
+  return apiClient(`/posts/${id}`);
+}
+
 export async function getPostApi(id) {
   const [p, allUsers] = await Promise.all([
     apiClient(`/posts/${id}`),

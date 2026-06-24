@@ -1,52 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Lock, Check, UserPlus, MoreHorizontal, Bell, UserX, UserCheck, ExternalLink } from 'lucide-react';
+import { Lock, Check, UserPlus, MoreHorizontal, Bell, UserCheck, ExternalLink } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import Avatar from '../../components/ui/Avatar';
 import CreateUserModal from '../../components/modals/CreateUserModal';
 import { useLanguage } from '../../context/LanguageContext';
-
-// TODO: API - GET /api/moderation/stats
-// {
-//   nb_active_members, pct_members_weekly_growth,
-//   nb_posts_per_day, nb_posts_delta_vs_yesterday,
-//   nb_pending_reports, nb_priority_reports,
-//   pct_healthy_content, cd_healthy_trend: 'up'|'down'|'stable'
-// }
-const MOCK_STATS = [
-  { value: '14,2k', labelKey: 'statMembersLabel', trend: '+3,1% cette semaine', cd_trend: 'up' },
-  { value: '2 870', labelKey: 'statPostsLabel', trend: '+148 vs hier', cd_trend: 'up' },
-  { value: '7', labelKey: 'statReportsLabel', trend: '2 prioritaires', cd_trend: 'warn' },
-  { value: '99,2%', labelKey: 'statHealthyLabel', trendKey: 'statStable', cd_trend: 'neutral', fl_desktop_only: true },
-];
-
-// TODO: API - GET /api/moderation/queue?limit=2
-const MOCK_REPORT_QUEUE = [
-  {
-    sk_id: 'r1',
-    user: { nm_username: 'promo92', nm_display: 'compte_promo_92' },
-    ts_relative: 'il y a 12 min',
-    txt_content: 'Gagne 500€/jour depuis chez toi !!! Clique sur le lien dans ma bio pour rejoindre le groupe privé →',
-    cd_reason: 'spam',
-    nb_reports: 3,
-  },
-  {
-    sk_id: 'r2',
-    user: { nm_username: 'theom', nm_display: 'Théo Mercier' },
-    ts_relative: 'il y a 1 h',
-    txt_content: 'Réponse jugée agressive par un membre. À relire dans le contexte du fil avant décision.',
-    cd_reason: 'hors_sujet',
-    nb_reports: 1,
-  },
-];
-
-const MOCK_FLAGGED_MEMBERS_INITIAL = [
-  { nm_username: 'camille', nm_display: 'Camille Roche', cd_status: 'active' },
-  { nm_username: 'theom', nm_display: 'Théo Mercier', cd_status: 'active' },
-  { nm_username: 'promo92', nm_display: 'compte_promo_92', cd_status: 'suspended' },
-];
+import { useAuth } from '../../context/AuthContext';
+import {
+  getModerationStatsApi,
+  getPendingReportsApi,
+  updateReportApi,
+  getActiveSanctionsApi,
+  revokeSanctionApi,
+  createSanctionApi,
+} from '../../lib/api/moderation.api';
+import { getAllProfilesApi } from '../../lib/api/users.api';
+import { getPostRawApi } from '../../lib/api/posts.api';
 
 const REASON_TAGS = {
   spam: 'tagSpam',
@@ -55,19 +26,106 @@ const REASON_TAGS = {
   harassment: 'tagHarassment',
 };
 
+function formatRelative(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  return `il y a ${Math.floor(h / 24)} j`;
+}
+
 export default function ModerationPage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [members, setMembers] = useState(MOCK_FLAGGED_MEMBERS_INITIAL);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [reportQueue, setReportQueue] = useState([]);
+  const [members, setMembers] = useState([]);
 
-  function handleToggleStatus(nm_username) {
-    // TODO: API - PATCH /api/moderation/members/:nm_username { cd_status }
-    setMembers(prev => prev.map(m =>
-      m.nm_username === nm_username
-        ? { ...m, cd_status: m.cd_status === 'active' ? 'suspended' : 'active' }
-        : m
-    ));
+  useEffect(() => {
+    Promise.all([
+      getModerationStatsApi().catch(() => null),
+      getPendingReportsApi().catch(() => []),
+      getActiveSanctionsApi('user').catch(() => []),
+      getAllProfilesApi().catch(() => []),
+    ]).then(async ([statsData, reports, sanctions, users]) => {
+      setStats(statsData);
+
+      const userById = Object.fromEntries(users.map(u => [u.id, u]));
+
+      const postIds = [...new Set(reports.filter(r => r.targetType === 'post').map(r => r.targetId))];
+      const posts = await Promise.all(postIds.map(id => getPostRawApi(id).catch(() => null)));
+      const postById = Object.fromEntries(postIds.map((id, i) => [id, posts[i]]));
+
+      const grouped = {};
+      for (const r of reports) {
+        if (!grouped[r.targetId]) grouped[r.targetId] = { report: r, count: 0 };
+        grouped[r.targetId].count++;
+      }
+      const queue = Object.values(grouped)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 2)
+        .map(({ report: r, count }) => {
+          let authorUsername, postContent;
+          if (r.targetType === 'post') {
+            const post = postById[r.targetId];
+            const author = post ? userById[post.authorId] : null;
+            authorUsername = author?.username ?? post?.authorId ?? r.targetId;
+            postContent = post?.content ?? null;
+          } else {
+            authorUsername = userById[r.targetId]?.username ?? r.targetId;
+            postContent = null;
+          }
+          const reporter = userById[r.reporterId];
+          return {
+            id: r.id,
+            targetId: r.targetId,
+            targetType: r.targetType,
+            authorUsername,
+            postContent,
+            reporter: reporter?.username ?? r.reporterId,
+            ts_relative: formatRelative(r.createdAt),
+            cd_reason: r.reason,
+            nb_reports: count,
+          };
+        });
+      setReportQueue(queue);
+
+      const memberList = sanctions.map(s => ({
+        sanctionId: s.id,
+        nm_username: userById[s.targetId]?.username ?? s.targetId,
+        nm_display: userById[s.targetId]?.username ?? s.targetId,
+        cd_status: 'suspended',
+      }));
+      setMembers(memberList);
+    });
+  }, []);
+
+  async function handleKeepReport(reportId) {
+    await updateReportApi(reportId, { status: 'reviewed' }).catch(console.error);
+    setReportQueue(prev => prev.filter(r => r.id !== reportId));
+  }
+
+  async function handleBanReport(reportId, targetId, targetType, reason) {
+    await Promise.all([
+      createSanctionApi({
+        targetId,
+        targetType,
+        moderatorId: user?.profileId,
+        reason,
+        reportId,
+        type: 'ban',
+      }),
+      updateReportApi(reportId, { status: 'reviewed' }),
+    ]).catch(console.error);
+    setReportQueue(prev => prev.filter(r => r.id !== reportId));
+  }
+
+  async function handleRevokeSanction(sanctionId) {
+    await revokeSanctionApi(sanctionId).catch(console.error);
+    setMembers(prev => prev.filter(m => m.sanctionId !== sanctionId));
     setOpenMenuId(null);
   }
 
@@ -92,7 +150,7 @@ export default function ModerationPage() {
         <div className="moderation-header__right">
           <span className="moderation-role-badge">
             <Lock size={11} />
-            {t('moderation.moderatorRole')}
+            {user?.role ?? t('moderation.moderatorRole')}
           </span>
           <button
             className="moderation-create-btn"
@@ -107,20 +165,24 @@ export default function ModerationPage() {
 
       <div className="moderation-body">
         <div className="moderation-stats">
-          {MOCK_STATS.map(stat => (
-            <div
-              key={stat.labelKey}
-              className={`stat-card${stat.fl_desktop_only ? ' stat-card--desktop-only' : ''}`}
-            >
-              <span className={`stat-card__value${stat.cd_trend === 'warn' ? ' stat-card__value--warn' : ''}`}>
-                {stat.value}
-              </span>
-              <span className="stat-card__label">{t(`moderation.${stat.labelKey}`)}</span>
-              <span className={`stat-card__trend stat-card__trend--${stat.cd_trend}`}>
-                {stat.trendKey ? t(`moderation.${stat.trendKey}`) : stat.trend}
-              </span>
-            </div>
-          ))}
+          <div className="stat-card">
+            <span className="stat-card__value">{stats?.nb_active_members ?? '—'}</span>
+            <span className="stat-card__label">{t('moderation.statMembersLabel')}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-card__value">{stats?.nb_posts_per_day ?? '—'}</span>
+            <span className="stat-card__label">{t('moderation.statPostsLabel')}</span>
+          </div>
+          <div className="stat-card">
+            <span className={`stat-card__value${stats?.nb_pending_reports > 0 ? ' stat-card__value--warn' : ''}`}>
+              {stats?.nb_pending_reports ?? '—'}
+            </span>
+            <span className="stat-card__label">{t('moderation.statReportsLabel')}</span>
+          </div>
+          <div className="stat-card stat-card--desktop-only">
+            <span className="stat-card__value">{stats ? `${stats.pct_healthy_content}%` : '—'}</span>
+            <span className="stat-card__label">{t('moderation.statHealthyLabel')}</span>
+          </div>
         </div>
 
         <section>
@@ -131,13 +193,15 @@ export default function ModerationPage() {
             </Link>
           </div>
           <div className="report-queue">
-            {MOCK_REPORT_QUEUE.map(item => (
-              <div key={item.sk_id} className="report-item">
+            {reportQueue.map(item => (
+              <div key={item.id} className="report-item">
                 <div className="report-item__user-row">
-                  <Avatar name={item.user.nm_display} size="md" />
+                  <Avatar name={item.authorUsername} size="md" />
                   <div className="report-item__user-info">
-                    <span className="report-item__name">{item.user.nm_display}</span>
-                    <span className="report-item__time">{item.ts_relative}</span>
+                    <span className="report-item__name">@{item.authorUsername}</span>
+                    <span className="report-item__time">
+                      {t('moderation.reportedBy')} @{item.reporter} · {item.ts_relative}
+                    </span>
                   </div>
                   <span className="report-tag">
                     <Bell size={10} />
@@ -145,23 +209,25 @@ export default function ModerationPage() {
                   </span>
                 </div>
 
-                <p className="report-item__content">{item.txt_content}</p>
+                {item.postContent && (
+                  <p className="report-item__content">{item.postContent}</p>
+                )}
 
                 <div className="report-item__actions">
-                  <button className="report-action-btn report-action-btn--keep">
+                  <button className="report-action-btn report-action-btn--keep" onClick={() => handleKeepReport(item.id)}>
                     <Check size={14} strokeWidth={2.5} />
                     {t('moderation.actionKeep')}
                   </button>
-                  <button className="report-action-btn report-action-btn--hide">
-                    {t('moderation.actionHide')}
-                  </button>
-                  <button className="report-action-btn report-action-btn--ban">
+                  <button className="report-action-btn report-action-btn--ban" onClick={() => handleBanReport(item.id, item.targetId, item.targetType, item.cd_reason)}>
                     <Lock size={13} />
                     {t('moderation.actionBan')}
                   </button>
                 </div>
               </div>
             ))}
+            {reportQueue.length === 0 && (
+              <p className="moderation-empty">{t('moderation.noReports')}</p>
+            )}
           </div>
         </section>
 
@@ -201,18 +267,20 @@ export default function ModerationPage() {
                       </Link>
                       <div className="member-menu__divider" />
                       <button
-                        className={`member-menu__item ${member.cd_status === 'active' ? 'member-menu__item--warn' : 'member-menu__item--success'}`}
-                        onClick={() => handleToggleStatus(member.nm_username)}
+                        className="member-menu__item member-menu__item--success"
+                        onClick={() => handleRevokeSanction(member.sanctionId)}
                       >
-                        {member.cd_status === 'active'
-                          ? <><UserX size={14} />{t('moderation.suspendAccount')}</>
-                          : <><UserCheck size={14} />{t('moderation.cancelSuspension')}</>}
+                        <UserCheck size={14} />
+                        {t('moderation.cancelSuspension')}
                       </button>
                     </div>
                   )}
                 </div>
               </div>
             ))}
+            {members.length === 0 && (
+              <p className="moderation-empty">{t('moderation.noMembers')}</p>
+            )}
           </div>
         </section>
       </div>

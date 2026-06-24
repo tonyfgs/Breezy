@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import Avatar from '../../components/ui/Avatar';
 import ThemeSwitch from '../../components/ui/ThemeSwitch';
@@ -105,18 +105,6 @@ export default function SettingsPage() {
             <span className="settings-item__label">{t('settings.language')}</span>
             <LanguageSwitch />
           </div>
-        </section>
-
-        <section className="settings-section">
-          <h2 className="settings-section__title">{t('settings.accountSection')}</h2>
-          <div className="settings-item">
-            <span className="settings-item__label">{t('settings.email')}</span>
-            <span className="settings-item__value">—</span>
-          </div>
-          <button className="settings-item settings-item--btn">
-            <span className="settings-item__label">{t('settings.changePassword')}</span>
-            <ChevronRight size={16} className="settings-item__chevron" />
-          </button>
         </section>
 
         <section className="settings-section settings-section--danger">

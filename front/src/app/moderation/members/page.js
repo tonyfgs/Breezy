@@ -1,22 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, UserPlus, MoreHorizontal, Search, UserX, UserCheck, ExternalLink } from 'lucide-react';
 import AppLayout from '../../../components/layout/AppLayout';
 import Avatar from '../../../components/ui/Avatar';
 import CreateUserModal from '../../../components/modals/CreateUserModal';
 import { useLanguage } from '../../../context/LanguageContext';
-
-// TODO: API - GET /api/moderation/members?status={filter}&search={query}&page={page}&limit=20
-// { items: Member[], nb_total, nb_pages }
-const MOCK_MEMBERS_INITIAL = [
-  { nm_username: 'camille', nm_display: 'Camille Roche', cd_status: 'active', ts_joined: 'jan. 2024' },
-  { nm_username: 'theom', nm_display: 'Théo Mercier', cd_status: 'active', ts_joined: 'fév. 2024' },
-  { nm_username: 'promo92', nm_display: 'compte_promo_92', cd_status: 'suspended', ts_joined: 'mars 2024' },
-  { nm_username: 'alex_b', nm_display: 'Alexandre Bonnet', cd_status: 'active', ts_joined: 'avr. 2024' },
-  { nm_username: 'marie_l', nm_display: 'Marie Laurent', cd_status: 'active', ts_joined: 'avr. 2024' },
-];
+import { useAuth } from '../../../context/AuthContext';
+import { getAllSanctionsApi, revokeSanctionApi, createSanctionApi } from '../../../lib/api/moderation.api';
+import { getAllProfilesApi } from '../../../lib/api/users.api';
 
 const STATUS_FILTERS = ['all', 'active', 'suspended'];
 
@@ -26,21 +19,68 @@ const FILTER_KEYS = {
   suspended: 'filterSuspended',
 };
 
+function formatJoined(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+}
+
 export default function ModerationMembersPage() {
   const { t } = useLanguage();
-  const [members, setMembers] = useState(MOCK_MEMBERS_INITIAL);
+  const { user: currentUser } = useAuth();
+  const [members, setMembers] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
-  function handleToggleStatus(nm_username) {
-    // TODO: API - PATCH /api/moderation/members/:nm_username { cd_status }
-    setMembers(prev => prev.map(m =>
-      m.nm_username === nm_username
-        ? { ...m, cd_status: m.cd_status === 'active' ? 'suspended' : 'active' }
-        : m
-    ));
+  useEffect(() => {
+    Promise.all([
+      getAllProfilesApi().catch(() => []),
+      getAllSanctionsApi().catch(() => []),
+    ]).then(([users, sanctions]) => {
+      const activeSanctionByUser = {};
+      for (const s of sanctions) {
+        if (s.targetType === 'user' && s.fl_active === 1) {
+          activeSanctionByUser[s.targetId] = s.id;
+        }
+      }
+
+      const list = users.map(u => ({
+        profileId: u.id,
+        nm_username: u.username,
+        nm_display: u.username,
+        cd_status: activeSanctionByUser[u.id] ? 'suspended' : 'active',
+        sanctionId: activeSanctionByUser[u.id] ?? null,
+        ts_joined: formatJoined(u.createdAt),
+      }));
+      setMembers(list);
+    });
+  }, []);
+
+  async function handleToggleStatus(profileId) {
+    const member = members.find(m => m.profileId === profileId);
+    if (!member) return;
+
+    if (member.cd_status === 'suspended' && member.sanctionId) {
+      await revokeSanctionApi(member.sanctionId).catch(console.error);
+      setMembers(prev => prev.map(m =>
+        m.profileId === profileId ? { ...m, cd_status: 'active', sanctionId: null } : m
+      ));
+    } else {
+      const sanction = await createSanctionApi({
+        targetId: profileId,
+        targetType: 'user',
+        moderatorId: currentUser?.profileId,
+        reason: 'suspension manuelle',
+        type: 'ban',
+      }).catch(console.error);
+      if (sanction) {
+        setMembers(prev => prev.map(m =>
+          m.profileId === profileId ? { ...m, cd_status: 'suspended', sanctionId: sanction.id } : m
+        ));
+      }
+    }
     setOpenMenuId(null);
   }
 
@@ -107,7 +147,7 @@ export default function ModerationMembersPage() {
         ) : (
           <div className="member-list">
             {filtered.map(member => (
-              <div key={member.nm_username} className="member-row">
+              <div key={member.profileId} className="member-row">
                 <Avatar name={member.nm_display} size="md" />
                 <div className="member-row__info">
                   <span className="member-row__name">{member.nm_display}</span>
@@ -123,11 +163,11 @@ export default function ModerationMembersPage() {
                   <button
                     className="member-row__more"
                     aria-label={t('moderation.moreOptions')}
-                    onClick={() => setOpenMenuId(openMenuId === member.nm_username ? null : member.nm_username)}
+                    onClick={() => setOpenMenuId(openMenuId === member.profileId ? null : member.profileId)}
                   >
                     <MoreHorizontal size={18} />
                   </button>
-                  {openMenuId === member.nm_username && (
+                  {openMenuId === member.profileId && (
                     <div className="member-menu">
                       <Link href={`/profile/${member.nm_username}`} className="member-menu__item">
                         <ExternalLink size={14} />
@@ -136,7 +176,7 @@ export default function ModerationMembersPage() {
                       <div className="member-menu__divider" />
                       <button
                         className={`member-menu__item ${member.cd_status === 'active' ? 'member-menu__item--warn' : 'member-menu__item--success'}`}
-                        onClick={() => handleToggleStatus(member.nm_username)}
+                        onClick={() => handleToggleStatus(member.profileId)}
                       >
                         {member.cd_status === 'active'
                           ? <><UserX size={14} />{t('moderation.suspendAccount')}</>

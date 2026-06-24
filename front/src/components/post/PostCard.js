@@ -34,8 +34,8 @@ export default function PostCard({ post }) {
     setLiked(newLiked);
     setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
     try {
-      if (newLiked) await likePostApi(post.sk_id, String(user.id));
-      else await unlikePostApi(post.sk_id, String(user.id));
+      if (newLiked) await likePostApi(post.sk_id, user.profileId);
+      else await unlikePostApi(post.sk_id, user.profileId);
     } catch (err) {
       if (err?.status === 409) {
         // Déjà liké en base — on corrige l'état local

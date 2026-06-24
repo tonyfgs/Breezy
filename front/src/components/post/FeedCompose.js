@@ -32,7 +32,7 @@ export default function FeedCompose({ onPostCreated }) {
     if (!isValid || !user || submitting) return;
     setSubmitting(true);
     try {
-      const post = await createPostApi(String(user.id), content);
+      const post = await createPostApi(user.profileId, content);
       setContent('');
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       onPostCreated?.(post);

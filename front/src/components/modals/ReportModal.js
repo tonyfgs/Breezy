@@ -27,7 +27,7 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
     if (!selectedReason || !user || submitting) return;
     setSubmitting(true);
     try {
-      await createReportApi(String(user.id), targetId, targetType, selectedReason);
+      await createReportApi(user.profileId, targetId, targetType, selectedReason);
     } catch (err) {
       console.error(err);
     } finally {

@@ -7,7 +7,7 @@ function normalizePost(p, authorUsername = null) {
     sk_authorId: p.authorId,
     txt_content: p.content,
     nb_likesCount: p.likeCount ?? 0,
-    nb_commentsCount: p.commentsCount ?? 0,
+    nb_commentsCount: p.commentCount ?? 0,
     fl_liked: false,
     ts_createdAt: p.createdAt,
     ts_updatedAt: p.updatedAt ?? p.createdAt,

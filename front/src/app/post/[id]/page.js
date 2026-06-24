@@ -46,14 +46,14 @@ export default function PostDetailPage({ params }) {
 
   useEffect(() => {
     if (!user || !id) return;
-    getLikeStatusApi(id, String(user.id))
+    getLikeStatusApi(id, user.profileId)
       .then(setLiked)
       .catch(console.error);
   }, [id, user]);
 
   async function handleLike() {
     if (!user || !post) return;
-    const userId = String(user.id);
+    const userId = user.profileId;
     if (liked) {
       setLiked(false);
       setLikeCount(c => c - 1);

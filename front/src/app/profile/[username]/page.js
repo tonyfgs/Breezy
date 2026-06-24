@@ -37,11 +37,11 @@ export default function ProfilePage({ params }) {
         if (!p) { setLoading(false); return; }
         setProfile(p);
 
-        const followQueryId = isOwnProfile ? String(user.id) : p.id;
+        const followQueryId = isOwnProfile ? user.profileId : p.id;
         const [followers, followingList, postsData] = await Promise.all([
           getFollowersApi(followQueryId).catch(() => []),
           getFollowingApi(followQueryId).catch(() => []),
-          getPostsByUserApi(isOwnProfile ? String(user.id) : p.id, 1, 20, p.username).catch(() => ({ posts: [] })),
+          getPostsByUserApi(isOwnProfile ? user.profileId : p.id, 1, 20, p.username).catch(() => ({ posts: [] })),
         ]);
 
         setFollowersCount(Array.isArray(followers) ? followers.length : 0);
@@ -49,7 +49,7 @@ export default function ProfilePage({ params }) {
         setPosts(postsData.posts ?? []);
 
         if (!isOwnProfile && user) {
-          const myFollowing = await getFollowingApi(String(user.id)).catch(() => []);
+          const myFollowing = await getFollowingApi(user.profileId).catch(() => []);
           setFollowing(Array.isArray(myFollowing) && myFollowing.includes(p.id));
         }
       })
@@ -59,7 +59,7 @@ export default function ProfilePage({ params }) {
 
   async function handleFollowToggle() {
     if (!user || !profile) return;
-    const myId = String(user.id);
+    const myId = user.profileId;
     if (following) {
       setFollowing(false);
       setFollowersCount(c => c - 1);

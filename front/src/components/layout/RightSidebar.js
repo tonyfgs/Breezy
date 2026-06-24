@@ -15,7 +15,7 @@ export default function RightSidebar() {
 
   useEffect(() => {
     if (!user) return;
-    const myId = String(user.id);
+    const myId = user.profileId;
     Promise.all([
       getAllProfilesApi().catch(() => []),
       getFollowingApi(myId).catch(() => []),
@@ -31,7 +31,7 @@ export default function RightSidebar() {
 
   async function toggleFollow(userId) {
     if (!user) return;
-    const myId = String(user.id);
+    const myId = user.profileId;
     const isFollowed = suggestions.find(s => s.sk_id === userId)?.fl_followed;
 
     setSuggestions(prev =>

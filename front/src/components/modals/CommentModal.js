@@ -23,7 +23,7 @@ export default function CommentModal({ post, onClose, onCommentCreated }) {
     if (!content.trim() || isOverLimit || !user || submitting) return;
     setSubmitting(true);
     try {
-      await createPostApi(String(user.id), content, post.sk_id);
+      await createPostApi(user.profileId, content, post.sk_id);
       onCommentCreated?.();
       onClose();
     } catch (err) {

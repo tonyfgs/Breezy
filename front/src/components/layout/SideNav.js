@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Home, Search, Bell, User, Settings, PenLine, MoreHorizontal, Shield } from 'lucide-react';
+import { Home, Search, User, Settings, PenLine, MoreHorizontal, Shield } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CreatePostModal from '../modals/CreatePostModal';
 import { useLanguage } from '../../context/LanguageContext';
@@ -17,16 +17,12 @@ export default function SideNav() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const NAV_ITEMS = [
-    { href: '/feed', icon: Home, label: t('nav.feed'), notifKey: false },
+    { href: '/feed', icon: Home, label: t('nav.feed') },
     { href: '/search', icon: Search, label: t('nav.discover') },
-    { href: '/notifications', icon: Bell, label: t('nav.notifications'), notifKey: true },
     { href: '/profile/me', icon: User, label: t('nav.profile') },
     { href: '/settings', icon: Settings, label: t('nav.settings') },
     { href: '/moderation', icon: Shield, label: t('nav.moderation') },
   ];
-
-  // TODO: API - GET /api/notifications/unread-count
-  const hasNotifications = false;
 
   return (
     <>
@@ -43,27 +39,17 @@ export default function SideNav() {
         </Link>
 
         <ul className="side-nav__list">
-          {NAV_ITEMS.map(({ href, icon: Icon, label, notifKey, matchPrefix }) => {
-            const isActive = matchPrefix
-              ? pathname.startsWith(matchPrefix)
-              : pathname === href;
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`side-nav__item${isActive ? ' side-nav__item--active' : ''}`}
-                >
-                  <div className="side-nav__icon-wrapper">
-                    <Icon size={20} />
-                    {notifKey && hasNotifications && (
-                      <span className="side-nav__notif-dot" />
-                    )}
-                  </div>
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
+          {NAV_ITEMS.map(({ href, icon: Icon, label }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className={`side-nav__item${pathname === href || pathname.startsWith(href + '/') ? ' side-nav__item--active' : ''}`}
+              >
+                <Icon size={20} />
+                {label}
+              </Link>
+            </li>
+          ))}
         </ul>
 
         <button

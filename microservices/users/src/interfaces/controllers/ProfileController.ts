@@ -2,11 +2,16 @@ import {CreateProfileUseCase} from "../../application/usecases/CreateProfileUseC
 import {DeleteProfileUseCase} from "../../application/usecases/DeleteProfileUseCase";
 import {DeleteProfileByUsernameUseCase} from "../../application/usecases/DeleteProfileByUsernameUseCase";
 import {GetProfileUseCase} from "../../application/usecases/GetProfileUseCase";
+import {GetProfileByUsernameUseCase} from "../../application/usecases/GetProfileByUsernameUseCase";
 import {GetAllProfilesUseCase} from "../../application/usecases/GetAllProfilesUseCase";
 import {UpdateProfileUseCase} from "../../application/usecases/UpdateProfileUseCase";
 import {IController} from "./IController";
 import {Router} from "express";
 import {ProfileDTO} from "../../application/dto/ProfileDTO";
+import {authenticate} from "../middlewares/authMiddleware";
+import {authenticateOrService} from "../middlewares/serviceMiddleware";
+import {requireRole} from "../middlewares/roleMiddleware";
+import {requireProfileOwnershipOrAdmin} from "../middlewares/ownershipMiddleware";
 
 export class ProfileController implements IController{
 
@@ -17,26 +22,42 @@ export class ProfileController implements IController{
     private deleteProfileUseCase: DeleteProfileUseCase;
     private deleteProfileByUsernameUseCase: DeleteProfileByUsernameUseCase;
     private getProfileUseCase: GetProfileUseCase;
+    private getProfileByUsernameUseCase: GetProfileByUsernameUseCase;
     private getAllProfilesUseCase: GetAllProfilesUseCase;
     private updateProfileUseCase: UpdateProfileUseCase;
 
-    constructor(getProfileUseCase: GetProfileUseCase, createProfileUseCase: CreateProfileUseCase, deleteProfileUseCase: DeleteProfileUseCase, updateProfileUseCase: UpdateProfileUseCase, getAllProfilesUseCase: GetAllProfilesUseCase, deleteProfileByUsernameUseCase: DeleteProfileByUsernameUseCase) {
+    constructor(getProfileUseCase: GetProfileUseCase, createProfileUseCase: CreateProfileUseCase, deleteProfileUseCase: DeleteProfileUseCase, updateProfileUseCase: UpdateProfileUseCase, getAllProfilesUseCase: GetAllProfilesUseCase, deleteProfileByUsernameUseCase: DeleteProfileByUsernameUseCase, getProfileByUsernameUseCase: GetProfileByUsernameUseCase) {
         this.getProfileUseCase = getProfileUseCase;
         this.createProfileUseCase = createProfileUseCase;
         this.deleteProfileUseCase = deleteProfileUseCase;
         this.deleteProfileByUsernameUseCase = deleteProfileByUsernameUseCase;
+        this.getProfileByUsernameUseCase = getProfileByUsernameUseCase;
         this.updateProfileUseCase = updateProfileUseCase;
         this.getAllProfilesUseCase = getAllProfilesUseCase;
         this.initialiseRoutes();
     }
 
     private initialiseRoutes() {
-        this.router.get(`/`, this.getAllProfiles.bind(this));
-        this.router.get(`/:id`, this.getProfile.bind(this));
+        // GET /users/ : Securise, necessite d'etre authentifie
+        this.router.get(`/`, authenticate, this.getAllProfiles.bind(this));
+
+        // GET /users/username/:username : Securise, necessite d'etre authentifie
+        this.router.get(`/username/:username`, authenticateOrService, this.getProfileByUsername.bind(this));
+
+        // GET /users/:id : Securise, necessite d'etre authentifie
+        this.router.get(`/:id`, authenticate, this.getProfile.bind(this));
+
+        // POST /users/ : Public (creation de compte visiteur)
         this.router.post(`/`, this.createProfile.bind(this));
-        this.router.delete(`/username/:username`, this.deleteProfileByUsername.bind(this));
-        this.router.delete(`/:id`, this.deleteProfile.bind(this));
-        this.router.patch(`/:id`, this.patchProfile.bind(this));
+
+        // DELETE /users/username/:username : Réservé aux Administrateurs et Modérateurs
+        this.router.delete(`/username/:username`, authenticateOrService, requireRole(['admin', 'moderator']), this.deleteProfileByUsername.bind(this));
+
+        // DELETE /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs
+        this.router.delete(`/:id`, authenticate, requireProfileOwnershipOrAdmin, this.deleteProfile.bind(this));
+
+        // PATCH /users/:id : Le propriétaire du compte OU les Administrateurs et Modérateurs
+        this.router.patch(`/:id`, authenticate, requireProfileOwnershipOrAdmin, this.patchProfile.bind(this));
     }
 
     private async getAllProfiles(_req: any, res: any): Promise<void> {
@@ -65,6 +86,15 @@ export class ProfileController implements IController{
         try {
             await this.deleteProfileByUsernameUseCase.execute(req.params.username);
             res.status(200).json({ message: 'Profile deleted successfully' });
+        } catch (err: any) {
+            res.status(404).json({ message: err.message });
+        }
+    }
+
+    private async getProfileByUsername(req: any, res: any): Promise<void> {
+        try {
+            const profile = await this.getProfileByUsernameUseCase.execute(req.params.username);
+            res.status(200).json(profile);
         } catch (err: any) {
             res.status(404).json({ message: err.message });
         }

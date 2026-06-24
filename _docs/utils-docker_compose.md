@@ -23,6 +23,7 @@
 | `users` | 4002 | MongoDB | `users-db` | 27018 |
 | `posts` | 4003 | MongoDB | `posts-db` | 27019 |
 | `moderation` | 4005 | MongoDB | `moderation-db` | 27020 |
+| `feed` | 
 
 ---
 

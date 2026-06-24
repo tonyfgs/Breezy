@@ -11,7 +11,10 @@ export class MockPostsGateway implements IPostGateway {
                 authorId: 'user-1',
                 content: 'Contenu du post 1',
                 likeCount: 10,
+<<<<<<< HEAD
                 commentCount: 0,
+=======
+>>>>>>> microservices
                 createdAt: new Date('2023-10-01'),
                 updatedAt: new Date('2023-10-01'),
             },
@@ -20,7 +23,10 @@ export class MockPostsGateway implements IPostGateway {
                 authorId: 'user-2',
                 content: 'Contenu du post 2',
                 likeCount: 5,
+<<<<<<< HEAD
                 commentCount: 0,
+=======
+>>>>>>> microservices
                 createdAt: new Date('2023-09-30'),
                 updatedAt: new Date('2023-09-30'),
             },
@@ -29,7 +35,10 @@ export class MockPostsGateway implements IPostGateway {
                 authorId: 'user-1',
                 content: 'Contenu du post 3',
                 likeCount: 15,
+<<<<<<< HEAD
                 commentCount: 0,
+=======
+>>>>>>> microservices
                 createdAt: new Date('2023-09-28'),
                 updatedAt: new Date('2023-09-28'),
             },

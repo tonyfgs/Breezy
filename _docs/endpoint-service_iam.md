@@ -1,11 +1,11 @@
 # Endpoints IAM
 
 > Service : IAM Service  
-> Dernière mise à jour : 2026-06-18
+> Dernière mise à jour : 2026-06-23
 
 ---
 
-Port par défaut : `3001` (env `PORT`)
+Port par défaut : `4001` (env `PORT`)
 
 ---
 
@@ -14,11 +14,11 @@ Port par défaut : `3001` (env `PORT`)
 | Méthode | Chemin | Auth | Description |
 |---------|--------|------|-------------|
 | `GET` | `/auth/health` | Non | Vérifie que le service est up |
-| `GET` | `/auth/users` | Non | Retourne la liste de tous les comptes |
-| `DELETE` | `/auth/users/:username` | Non | Supprime un compte et son profil associé |
-| `POST` | `/auth/register` | Non | Crée un compte utilisateur |
+| `GET` | `/auth/users` | `JWT` + `admin` | Retourne la liste de tous les comptes |
+| `DELETE` | `/auth/users/:username` | `JWT` + `admin` | Supprime un compte et son profil associé |
+| `POST` | `/auth/register` | Visiteur uniquement | Crée un compte utilisateur (403 si déjà authentifié) |
 | `POST` | `/auth/login` | Non | Authentifie et retourne un token JWT |
-| `GET` | `/auth/validate` | Oui | Vérifie la validité d'un token JWT |
+| `GET` | `/auth/validate` | Usage interne nginx | Vérifie la validité d'un token JWT |
 
 ---
 
@@ -39,7 +39,7 @@ Réponse `200` :
 
 ### GET `/auth/users`
 
-Aucun paramètre.
+Requiert : `Authorization: Bearer <token>` avec rôle `admin`.
 
 Réponse `200` : tableau de `UserDTO`
 
@@ -59,6 +59,8 @@ Réponse `200` : tableau de `UserDTO`
 
 ### DELETE `/auth/users/:username`
 
+Requiert : `Authorization: Bearer <token>` avec rôle `admin`.
+
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
 | `username` | path | `string` | oui | Nom d'utilisateur du compte à supprimer |
@@ -71,11 +73,13 @@ Réponse `200` :
 
 Erreur `404` si l'utilisateur n'existe pas.
 
-> Déclenche un appel interne vers le service `users` pour supprimer le profil associé (`DELETE /users/username/:username`) avant de supprimer le compte IAM.
+> Déclenche un appel interne vers le service `users` pour supprimer le profil associé (`DELETE /users/username/:username`) avant de supprimer le compte IAM. Cet appel utilise le header `x-service-secret` (pas de JWT).
 
 ---
 
 ### POST `/auth/register`
+
+Retourne **403** si un token JWT valide est présent dans le header `Authorization`. Un utilisateur déjà connecté doit supprimer son token avant de pouvoir créer un nouveau compte.
 
 Body JSON (`CreateUserDTO`) :
 
@@ -99,9 +103,9 @@ Réponse `201` : objet `UserDTO`
 
 Erreur `409` si le `username` est déjà pris.
 
-Erreur `400` si `role` n'est pas une valeur valide (`user`, `moderator`, `admin`) ou si la création du profil utilisateur échoue (l'inscription est alors annulée).
+Erreur `400` si `role` n'est pas une valeur valide ou si la création du profil échoue (l'inscription est alors annulée).
 
-> La création d'un compte déclenche automatiquement un appel interne vers le service `users` pour créer le profil associé (`bio` et `avatar` à `null` par défaut). Si cet appel échoue, le compte IAM est supprimé et une erreur est retournée.
+> La création d'un compte déclenche un appel interne vers `POST /users/` (route publique) pour créer le profil associé. Si cet appel échoue, le compte IAM est supprimé.
 
 ---
 
@@ -122,11 +126,17 @@ Réponse `200` : objet `TokenDTO`
 }
 ```
 
+Le token JWT contient : `{ iamId, profileId, username, role }`.
+
 Erreur `401` si les credentials sont invalides.
+
+> Au login, l'IAM appelle `GET /users/username/:username` (via `x-service-secret`) pour récupérer le `profileId` à inclure dans le token.
 
 ---
 
 ### GET `/auth/validate`
+
+Utilisé en interne par nginx (`auth_request`). Ne pas appeler directement.
 
 Header requis :
 
@@ -140,7 +150,8 @@ Réponse `200` :
 {
   "message": "Token is valid",
   "user": {
-    "id": 1,
+    "iamId": 1,
+    "profileId": "string",
     "username": "string",
     "role": "user"
   }
@@ -153,6 +164,6 @@ Erreur `401` si le token est absent, invalide ou expiré.
 
 ## Notes
 
-- Les tokens JWT expirent après `1h` (configurable via `JWT_EXPIRES_IN` dans le `.env`)
+- Les tokens JWT expirent après `1h` (configurable via `JWT_EXPIRES_IN`)
 - Le logout est géré côté client (suppression du token en local)
 - Le `passwordHash` n'est jamais exposé dans les réponses

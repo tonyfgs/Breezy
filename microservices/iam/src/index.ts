@@ -17,7 +17,7 @@ const controllerTable = new Array<IController>();
 const userRepository = new UserRepository();
 const userProfileService = new UserProfileService();
 const userController = new UserController(
-    new LoginUseCase(userRepository),
+    new LoginUseCase(userRepository, userProfileService),
     new RegisterUseCase(userRepository, userProfileService),
     new GetAllUsersUseCase(userRepository),
     new DeleteUserUseCase(userRepository, userProfileService)

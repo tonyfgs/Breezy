@@ -8,6 +8,7 @@ import { GetPostsByUserUseCase } from '../../application/usecases/GetPostsByUser
 import { GetPostsByAuthorsUseCase } from '../../application/usecases/GetPostsByAuthorsUseCase';
 import { UpdatePostUseCase } from '../../application/usecases/UpdatePostUseCase';
 import { DeletePostUseCase } from '../../application/usecases/DeletePostUseCase';
+import { GetPostsStatsUseCase } from '../../application/usecases/GetPostsStatsUseCase';
 import { authenticate } from '../middlewares/authMiddleware';
 import { authenticateOrService } from '../middlewares/serviceMiddleware';
 
@@ -24,11 +25,13 @@ export class PostController implements IController {
         private readonly updatePostUseCase: UpdatePostUseCase,
         private readonly deletePostUseCase: DeletePostUseCase,
         private readonly getPostsByAuthorsUseCase: GetPostsByAuthorsUseCase,
+        private readonly getPostsStatsUseCase: GetPostsStatsUseCase,
     ) {
         this.initialiseRoutes();
     }
 
     private initialiseRoutes() {
+        this.router.get('/stats', authenticateOrService, this.getStats.bind(this));
         this.router.get('/', authenticate, this.getAllPosts.bind(this));
         this.router.get('/user/:userId', authenticate, this.getPostsByUser.bind(this));
         this.router.get('/:id', authenticate, this.getPost.bind(this));
@@ -36,8 +39,17 @@ export class PostController implements IController {
         this.router.post('/by-authors', authenticateOrService, this.getPostsByAuthors.bind(this));
         this.router.post('/', authenticate, this.createPost.bind(this));
         this.router.put('/:id', authenticate, this.updatePost.bind(this));
-        this.router.patch('/:id', authenticate, this.patchPost.bind(this));
+        this.router.patch('/:id', authenticateOrService, this.patchPost.bind(this));
         this.router.delete('/:id', authenticate, this.deletePost.bind(this));
+    }
+
+    private async getStats(_req: any, res: any): Promise<void> {
+        try {
+            const stats = await this.getPostsStatsUseCase.execute();
+            res.status(200).json(stats);
+        } catch (err: any) {
+            res.status(500).json({ message: err.message });
+        }
     }
 
     private async getAllPosts(req: any, res: any): Promise<void> {

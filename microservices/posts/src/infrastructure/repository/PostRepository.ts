@@ -54,7 +54,7 @@ export class PostRepository implements IPostRepository {
     }
 
     async getPostsByAuthors(authorIds: string[], limit: number, cursor?: string): Promise<{ posts: Post[]; nextCursor: string | null }> {
-        const filter: Record<string, any> = { authorId: { $in: authorIds }, parentPostId: null };
+        const filter: Record<string, any> = { authorId: { $in: authorIds }, parentPostId: null, fl_banned: { $ne: 1 } };
         if (cursor) {
             filter.createdAt = { $lt: new Date(cursor) };
         }
@@ -75,5 +75,15 @@ export class PostRepository implements IPostRepository {
 
     async deletePost(id: string): Promise<void> {
         await PostModel.findByIdAndDelete(id);
+    }
+
+    async countPostsToday(): Promise<number> {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        return PostModel.countDocuments({ createdAt: { $gte: start }, parentPostId: null });
+    }
+
+    async countAllPosts(): Promise<number> {
+        return PostModel.countDocuments({ parentPostId: null });
     }
 }

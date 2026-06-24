@@ -3,4 +3,5 @@ export interface UpdatePostDTO {
     tagsList?: string[];
     mediaList?: string[];
     mentionsList?: string[];
+    fl_banned?: number;
 }

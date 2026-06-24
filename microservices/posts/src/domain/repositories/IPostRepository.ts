@@ -15,4 +15,6 @@ export interface IPostRepository {
     createPost(post: Post): Promise<Post>;
     updatePost(id: string, post: Partial<Post>): Promise<Post>;
     deletePost(id: string): Promise<void>;
+    countPostsToday(): Promise<number>;
+    countAllPosts(): Promise<number>;
 }

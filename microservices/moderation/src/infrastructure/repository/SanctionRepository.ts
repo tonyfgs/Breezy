@@ -35,4 +35,8 @@ export class SanctionRepository implements ISanctionRepository {
         if (!result) throw new Error(`Sanction not found: ${id}`);
         return SanctionMapper.toDomain(result);
     }
+
+    async countActiveSanctions(targetType: 'user' | 'post'): Promise<number> {
+        return SanctionModel.countDocuments({ targetType, fl_active: 1 });
+    }
 }

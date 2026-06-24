@@ -32,4 +32,8 @@ export class ReportRepository implements IReportRepository {
         if (!result) throw new Error(`Report not found: ${id}`);
         return ReportMapper.toDomain(result);
     }
+
+    async countPendingReports(): Promise<number> {
+        return ReportModel.countDocuments({ status: 'pending' });
+    }
 }

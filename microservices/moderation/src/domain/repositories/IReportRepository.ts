@@ -10,4 +10,5 @@ export interface IReportRepository {
     getReport(id: string): Promise<Report>;
     createReport(report: Report): Promise<Report>;
     updateReport(id: string, data: Partial<Report>): Promise<Report>;
+    countPendingReports(): Promise<number>;
 }

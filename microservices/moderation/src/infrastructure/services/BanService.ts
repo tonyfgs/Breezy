@@ -3,8 +3,8 @@ export class BanService {
     private readonly postsUrl: string;
 
     constructor() {
-        this.usersUrl = process.env.USERS_SERVICE_URL || 'http://users:4002';
-        this.postsUrl = process.env.POSTS_SERVICE_URL || 'http://posts:4003';
+        this.usersUrl = process.env.BASE_URL_USERS || 'http://users:4002';
+        this.postsUrl = process.env.BASE_URL_POSTS || 'http://posts:4003';
     }
 
     async setBanned(targetType: 'user' | 'post', targetId: string, banned: 0 | 1): Promise<void> {
@@ -14,7 +14,10 @@ export class BanService {
 
         const response = await fetch(url, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-service-secret': process.env.SERVICE_SECRET || '',
+            },
             body: JSON.stringify({ fl_banned: banned }),
         });
 

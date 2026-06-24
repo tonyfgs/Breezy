@@ -143,9 +143,10 @@ services:
       - PORT=4005
       - NODE_ENV=development
       - MONGODB_URI=mongodb://moderation-db:27017/breezy-moderation
-      - USERS_SERVICE_URL=http://users:4002
-      - POSTS_SERVICE_URL=http://posts:4003
+      - BASE_URL_USERS=http://users:4002
+      - BASE_URL_POSTS=http://posts:4003
       - JWT_SECRET=secret
+      - SERVICE_SECRET=breezy-internal
     depends_on:
       - moderation-db
       - users

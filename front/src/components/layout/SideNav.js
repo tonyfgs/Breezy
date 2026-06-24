@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Home, Search, Bell, User, Settings, PenLine, MoreHorizontal } from 'lucide-react';
+import { Home, Search, Bell, User, Settings, PenLine, MoreHorizontal, Shield } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CreatePostModal from '../modals/CreatePostModal';
 import { useLanguage } from '../../context/LanguageContext';
@@ -22,6 +22,7 @@ export default function SideNav() {
     { href: '/notifications', icon: Bell, label: t('nav.notifications'), notifKey: true },
     { href: '/profile/me', icon: User, label: t('nav.profile') },
     { href: '/settings', icon: Settings, label: t('nav.settings') },
+    { href: '/moderation', icon: Shield, label: t('nav.moderation') },
   ];
 
   // TODO: API - GET /api/notifications/unread-count

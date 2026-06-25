@@ -1,21 +1,13 @@
-const TOKEN_KEY = 'breezy-token';
+const USER_KEY = 'breezy-user';
 
-export function getToken() {
-  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
+export function getUser() {
+  try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
 }
 
-export function setToken(token) {
-  try { localStorage.setItem(TOKEN_KEY, token); } catch {}
+export function setUser(user) {
+  try { localStorage.setItem(USER_KEY, JSON.stringify(user)); } catch {}
 }
 
-export function removeToken() {
-  try { localStorage.removeItem(TOKEN_KEY); } catch {}
-}
-
-export function decodeToken(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch {
-    return null;
-  }
+export function removeUser() {
+  try { localStorage.removeItem(USER_KEY); } catch {}
 }

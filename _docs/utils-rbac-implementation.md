@@ -45,13 +45,14 @@ Chaque middleware `authenticate` extrait `profileId` dans `req.user.id` (sauf da
 ## 4. Architecture de sécurité
 
 ```
-Client
-  │  Authorization: Bearer <token>
+Client (navigateur)
+  │  Cookie HttpOnly: token=<jwt>
   ▼
 [nginx — api-gateway :4000]
-  │  auth_request → IAM /auth/validate
-  │  → 401 si token absent ou invalide
-  │  Forward la requête + header Authorization
+  │  Lit $cookie_token → injecte Authorization: Bearer <jwt>
+  │  auth_request → IAM /auth/validate (avec header injecté)
+  │  → 401 si cookie absent ou token invalide
+  │  Forward la requête + header Authorization injecté
   ▼
 [Microservice]
   │
@@ -59,6 +60,8 @@ Client
   ├─ requireRole(...)      vérifie req.user.role
   └─ controller            vérifie l'ownership si nécessaire
 ```
+
+> Le frontend n'envoie jamais de header `Authorization` manuellement. Le cookie est transmis automatiquement par le navigateur (`credentials: 'include'`), et nginx se charge de la traduction cookie → header pour les microservices.
 
 ---
 
@@ -110,6 +113,7 @@ Contexte : l'IAM appelle le service users lors du login (pour récupérer le `pr
 |---|---|---|---|
 | `/auth/register` | POST | Visiteur uniquement (403 si token valide présent) | `rejectIfAuthenticated` |
 | `/auth/login` | POST | Public | — |
+| `/auth/logout` | POST | Public | — |
 | `/auth/validate` | GET | Interne nginx | — |
 | `/auth/users` | GET | `admin` | `authenticate`, `requireRole(['admin'])` |
 | `/auth/users/:username` | DELETE | `admin` | `authenticate`, `requireRole(['admin'])` |
@@ -118,11 +122,11 @@ Contexte : l'IAM appelle le service users lors du login (pour récupérer le `pr
 
 | Route | Méthode | Accès | Middleware |
 |---|---|---|---|
-| `/users/` | GET | Authentifié | `authenticate` |
+| `/users/` | GET | Authentifié ou service interne | `authenticateOrService` |
 | `/users/username/:username` | GET | Authentifié ou service interne | `authenticateOrService` |
 | `/users/:id` | GET | Authentifié | `authenticate` |
 | `/users/` | POST | Public (appelé par l'IAM au register) | — |
-| `/users/:id` | PATCH | Owner, `moderator`, `admin` | `authenticate`, `requireProfileOwnershipOrAdmin` |
+| `/users/:id` | PATCH | Owner, `moderator`, `admin` ou service interne | `authenticateOrService`, `requireProfileOwnershipOrAdmin` |
 | `/users/username/:username` | DELETE | `moderator`, `admin` ou service interne | `authenticateOrService`, `requireRole(['admin','moderator'])` |
 | `/users/:id` | DELETE | Owner, `moderator`, `admin` | `authenticate`, `requireProfileOwnershipOrAdmin` |
 
@@ -132,10 +136,10 @@ Contexte : l'IAM appelle le service users lors du login (pour récupérer le `pr
 |---|---|---|---|
 | `/follows/` | POST | Authentifié | `authenticate` |
 | `/follows/` | DELETE | Authentifié | `authenticate` |
-| `/follows/:id/followers` | GET | Authentifié | `authenticate` |
-| `/follows/:id/following` | GET | Authentifié | `authenticate` |
+| `/follows/:id/followers` | GET | Authentifié ou service interne | `authenticateOrService` |
+| `/follows/:id/following` | GET | Authentifié ou service interne | `authenticateOrService` |
 
-Note : `follwerId` est extrait de `req.user.id` (le token), non du body.
+Note : `follwerId` est extrait de `req.user.id` (le token), non du body. Les utilisateurs avec `fl_banned: 1` sont exclus de `/follows/:id/following`.
 
 ### Posts (`/posts/`)
 
@@ -145,10 +149,11 @@ Note : `follwerId` est extrait de `req.user.id` (le token), non du body.
 | `/posts/:id` | GET | Authentifié | `authenticate` |
 | `/posts/user/:userId` | GET | Authentifié | `authenticate` |
 | `/posts/:id/comments` | GET | Authentifié | `authenticate` |
-| `/posts/by-authors` | POST | Authentifié | `authenticate` |
+| `/posts/stats` | GET | Authentifié ou service interne | `authenticateOrService` |
+| `/posts/by-authors` | POST | Authentifié ou service interne | `authenticateOrService` |
 | `/posts/` | POST | Authentifié | `authenticate` — `authorId` forcé depuis `req.user.id` |
 | `/posts/:id` | PUT | Owner, `admin`, `moderator` | `authenticate` + ownership dans le controller |
-| `/posts/:id` | PATCH | Owner, `admin`, `moderator` | `authenticate` + ownership dans le controller |
+| `/posts/:id` | PATCH | Owner, `admin`, `moderator` ou service interne | `authenticateOrService` + ownership dans le controller |
 | `/posts/:id` | DELETE | Owner, `admin`, `moderator` | `authenticate` + ownership dans le controller |
 | `/posts/:postId/likes` | GET | Authentifié | `authenticate` |
 | `/posts/:postId/likes/count` | GET | Authentifié | `authenticate` |
@@ -160,6 +165,12 @@ Note : `follwerId` est extrait de `req.user.id` (le token), non du body.
 | Route | Méthode | Accès | Middleware / Logique |
 |---|---|---|---|
 | `/feed/:idUser` | GET | Owner du feed, `admin`, `moderator` | `authenticate` + vérification `req.user.id === idUser` dans le controller |
+
+### Moderation — Stats (`/moderation/`)
+
+| Route | Méthode | Accès | Middleware |
+|---|---|---|---|
+| `/moderation/stats` | GET | `moderator`, `admin` | `authenticate`, `requireRole(['moderator','admin'])` |
 
 ### Moderation — Reports (`/reports/`)
 
@@ -198,15 +209,21 @@ Note : `follwerId` est extrait de `req.user.id` (le token), non du body.
 
 ## 8. Communication inter-services
 
-L'IAM appelle le service users pour deux opérations qui n'ont pas encore de JWT :
+Tous les appels inter-services utilisent le header `x-service-secret` pour s'authentifier. La route réceptrice doit utiliser `authenticateOrService`.
 
-| Opération | Route appelée | Mécanisme |
-|---|---|---|
-| Récupérer le `profileId` au login | `GET /users/username/:username` | Header `x-service-secret` |
-| Créer le profil au register | `POST /users/` | Route publique |
-| Supprimer le profil à la suppression de compte | `DELETE /users/username/:username` | Header `x-service-secret` |
+| Appelant | Route appelée | Mécanisme | Raison |
+|---|---|---|---|
+| `iam` | `GET /users/username/:username` | `x-service-secret` | Récupérer le `profileId` au login |
+| `iam` | `POST /users/` | Route publique | Créer le profil au register |
+| `iam` | `DELETE /users/username/:username` | `x-service-secret` | Supprimer le profil à la suppression de compte |
+| `moderation` | `GET /users/` | `x-service-secret` | Compter les membres pour les stats |
+| `moderation` | `GET /posts/stats` | `x-service-secret` | Récupérer les stats de posts |
+| `moderation` | `PATCH /users/:id` | `x-service-secret` | Mettre à jour `fl_banned` lors d'un ban/révocation |
+| `moderation` | `PATCH /posts/:id` | `x-service-secret` | Mettre à jour `fl_banned` lors d'un ban/révocation |
+| `feed` | `GET /follows/:id/following` | `x-service-secret` | Récupérer les auteurs à inclure dans le feed |
+| `feed` | `POST /posts/by-authors` | `x-service-secret` | Récupérer les posts du feed |
 
-Le secret est défini via la variable d'environnement `SERVICE_SECRET` (partagée entre `iam` et `users` dans `docker-compose`).
+Le secret est défini via la variable d'environnement `SERVICE_SECRET` (partagée entre tous les services dans `docker-compose`).
 
 ---
 
@@ -220,5 +237,12 @@ Le secret est défini via la variable d'environnement `SERVICE_SECRET` (partagé
 | `users` | `JWT_SECRET` | Vérification des tokens |
 | `users` | `SERVICE_SECRET` | Validation du header inter-services |
 | `posts` | `JWT_SECRET` | Vérification des tokens |
+| `posts` | `SERVICE_SECRET` | Validation du header inter-services |
 | `feed` | `JWT_SECRET` | Vérification des tokens |
+| `feed` | `SERVICE_SECRET` | Appels inter-services vers `users` et `posts` |
+| `feed` | `BASE_URL_USERS` | URL du service users (`http://users:4002`) |
+| `feed` | `BASE_URL_POSTS` | URL du service posts (`http://posts:4003`) |
 | `moderation` | `JWT_SECRET` | Vérification des tokens |
+| `moderation` | `SERVICE_SECRET` | Appels inter-services + validation du header |
+| `moderation` | `BASE_URL_USERS` | URL du service users (`http://users:4002`) |
+| `moderation` | `BASE_URL_POSTS` | URL du service posts (`http://posts:4003`) |

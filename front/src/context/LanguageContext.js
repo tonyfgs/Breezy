@@ -8,13 +8,6 @@ const LanguageContext = createContext(null);
 
 export const DATE_LOCALES = { fr: 'fr-FR', en: 'en-US' };
 
-function getInitialLocale() {
-  if (typeof window === 'undefined') return 'fr';
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === 'fr' || stored === 'en') return stored;
-  return window.navigator.language?.startsWith('en') ? 'en' : 'fr';
-}
-
 function getValue(dict, path) {
   return path.split('.').reduce((acc, key) => acc?.[key], dict);
 }
@@ -25,11 +18,20 @@ function interpolate(str, vars) {
 }
 
 export function LanguageProvider({ children }) {
-  const [locale, setLocale] = useState(getInitialLocale);
+  const [locale, setLocale] = useState('fr');
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'fr' || stored === 'en') {
+      setLocale(stored);
+    } else if (navigator.language?.startsWith('en')) {
+      setLocale('en');
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('lang', locale);
-    window.localStorage.setItem(STORAGE_KEY, locale);
+    localStorage.setItem(STORAGE_KEY, locale);
   }, [locale]);
 
   function t(key, vars) {

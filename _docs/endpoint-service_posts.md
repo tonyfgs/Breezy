@@ -1,7 +1,7 @@
 # Endpoints Posts
 
 > Service : Posts Service  
-> Dernière mise à jour : 2026-06-23
+> Dernière mise à jour : 2026-06-25
 
 ---
 
@@ -13,15 +13,31 @@ Port par défaut : `4003` (env `PORT`)
 
 | Méthode | Chemin | Auth | Description |
 |---------|--------|------|-------------|
+| `GET` | `/posts/stats` | `JWT` ou service interne | Retourne les statistiques de posts |
 | `GET` | `/posts` | `JWT` | Récupère tous les posts (hors commentaires), paginés |
 | `GET` | `/posts/user/:userId` | `JWT` | Récupère tous les posts d'un utilisateur, paginés |
 | `GET` | `/posts/:id` | `JWT` | Récupère un post par son ID |
 | `GET` | `/posts/:id/comments` | `JWT` | Récupère les commentaires d'un post, paginés |
 | `POST` | `/posts` | `JWT` | Crée un post ou un commentaire |
-| `POST` | `/posts/by-authors` | `JWT` | Récupère les posts de plusieurs auteurs (utilisé par Feed) |
+| `POST` | `/posts/by-authors` | `JWT` ou service interne | Récupère les posts de plusieurs auteurs (utilisé par Feed) |
 | `PUT` | `/posts/:id` | `JWT` + owner ou `moderator`/`admin` | Modifie le contenu d'un post |
-| `PATCH` | `/posts/:id` | `JWT` + owner ou `moderator`/`admin` | Met à jour les champs partiels d'un post |
+| `PATCH` | `/posts/:id` | `JWT` ou service interne + owner/`moderator`/`admin` | Met à jour les champs partiels d'un post |
 | `DELETE` | `/posts/:id` | `JWT` + owner ou `moderator`/`admin` | Supprime un post |
+
+---
+
+### GET `/posts/stats`
+
+Requiert : `Authorization: Bearer <token>` ou header `x-service-secret` (appel inter-service depuis le service modération).
+
+Réponse `200` :
+
+```json
+{
+  "postsToday": 17,
+  "totalPosts": 1042
+}
+```
 
 ---
 
@@ -190,7 +206,7 @@ Erreur `404` si le post n'existe pas.
 
 ### POST `/posts/by-authors`
 
-Requiert : `Authorization: Bearer <token>`.
+Requiert : `Authorization: Bearer <token>` ou header `x-service-secret` (appel inter-service depuis le service Feed).
 
 Récupère les posts de plusieurs auteurs avec pagination par curseur. Utilisé par le service Feed.
 
@@ -226,7 +242,7 @@ Réponse `200` :
 
 `nextCursor` est `null` s'il n'y a plus de résultats.
 
-> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Triés par `createdAt` décroissant.
+> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Triés par `createdAt` décroissant. Les posts avec `fl_banned: 1` sont exclus du résultat.
 
 ---
 

@@ -18,6 +18,6 @@ export class LoginUseCase {
         if (!valid) return null;
         const profileId = await this.userProfileService.getProfileId(user.username);
         const token = generateToken({ iamId: user.id, profileId, username: user.username, role: user.role });
-        return { token };
+        return { token, iamId: String(user.id!), profileId, username: user.username, role: user.role };
     }
 }

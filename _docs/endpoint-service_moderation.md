@@ -1,11 +1,45 @@
 # Endpoints Moderation
 
 > Service : Moderation Service  
-> Dernière mise à jour : 2026-06-23
+> Dernière mise à jour : 2026-06-25
 
 ---
 
 Port par défaut : `4005` (env `PORT`)
+
+---
+
+## Statistiques
+
+| Méthode | Chemin | Auth | Description |
+|---------|--------|------|-------------|
+| `GET` | `/moderation/stats` | `JWT` + `moderator`/`admin` | Retourne les statistiques globales de la plateforme |
+
+---
+
+### GET `/moderation/stats`
+
+Requiert : `Authorization: Bearer <token>` avec rôle `moderator` ou `admin`.
+
+Réponse `200` :
+
+```json
+{
+  "nb_active_members": 42,
+  "nb_posts_per_day": 17,
+  "nb_pending_reports": 3,
+  "pct_healthy_content": 94
+}
+```
+
+| Champ | Description |
+|-------|-------------|
+| `nb_active_members` | Nombre total d'utilisateurs (appel inter-service vers `users`) |
+| `nb_posts_per_day` | Nombre de posts créés aujourd'hui (appel inter-service vers `posts`) |
+| `nb_pending_reports` | Nombre de signalements en statut `pending` |
+| `pct_healthy_content` | `100 - (nb_sanctions_actives / total_posts * 100)`, arrondi |
+
+> Agrège des données via `HttpUsersGateway` (`GET /users/`) et `HttpPostsGateway` (`GET /posts/stats`), tous deux authentifiés avec `x-service-secret`.
 
 ---
 

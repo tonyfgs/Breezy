@@ -8,7 +8,6 @@ import {HttpModerationGateway} from "./infrastructure/http/HttpModerationGateway
 import {GetFeedUseCase} from "./application/usecases/GetFeedUseCase";
 import {SortByScoreRule} from "./application/services/SortByScoreRule";
 import {ISortingRule} from "./domain/services/ISortingRule";
-import {MockModerationGateway} from "./infrastructure/http/mock/mockModerationGateway";
 import {IModerationGateway} from "./domain/gateway/IModerationGateway";
 import {IUserGateway} from "./domain/gateway/IUserGateway";
 import {IPostGateway} from "./domain/gateway/IPostGateway";
@@ -18,7 +17,7 @@ const PORT = process.env.PORT || 4004;
 
 const httpPostGateway: IPostGateway = new HttpPostGateway(process.env.BASE_URL_POSTS || 'http://posts:4003');
 const httpUserGateway: IUserGateway = new HttpUserGateway(process.env.BASE_URL_USERS || 'http://users:4002');
-const httpModerationGateway: IModerationGateway = new MockModerationGateway(process.env.BASE_URL_MODERATION || 'http://moderation:4005');
+const httpModerationGateway: IModerationGateway = new HttpModerationGateway(process.env.BASE_URL_MODERATION || 'http://moderation:4005');
 
 
 const sortingRules: Array<ISortingRule> = []

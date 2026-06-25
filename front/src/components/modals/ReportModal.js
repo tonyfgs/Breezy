@@ -28,7 +28,8 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
     if (!selectedReason || !user || submitting) return;
     setSubmitting(true);
     try {
-      await createReportApi(user.profileId, targetId, targetType, selectedReason);
+      const resolvedType = targetType === 'comment' ? 'post' : targetType;
+      await createReportApi(user.profileId, targetId, resolvedType, selectedReason);
       setSubmitted(true);
       setTimeout(onClose, 1800);
     } catch (err) {

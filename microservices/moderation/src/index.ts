@@ -17,6 +17,7 @@ import { ReportController } from './interfaces/controllers/ReportController';
 import { SanctionController } from './interfaces/controllers/SanctionController';
 import { StatsController } from './interfaces/controllers/StatsController';
 import { GetModerationStatsUseCase } from './application/usecases/GetModerationStatsUseCase';
+import { GetActiveUsersUseCase } from './application/usecases/GetActiveUsersUseCase';
 import { HttpUsersGateway } from './infrastructure/http/HttpUsersGateway';
 import { HttpPostsGateway } from './infrastructure/http/HttpPostsGateway';
 
@@ -52,6 +53,7 @@ const postsGateway = new HttpPostsGateway(process.env.BASE_URL_POSTS || 'http://
 
 const statsController = new StatsController(
     new GetModerationStatsUseCase(reportRepository, sanctionRepository, usersGateway, postsGateway),
+    new GetActiveUsersUseCase(sanctionRepository),
 );
 
 controllerTable.push(reportController, sanctionController, statsController);

@@ -38,6 +38,7 @@ function formatRelative(dateStr) {
 export default function ModerationPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const deletedLabel = t('moderation.postDeleted');
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [stats, setStats] = useState(null);
@@ -73,7 +74,7 @@ export default function ModerationPage() {
             const post = postById[r.targetId];
             const author = post ? userById[post.authorId] : null;
             authorUsername = author?.username ?? post?.authorId ?? r.targetId;
-            postContent = post?.content ?? null;
+            postContent = post?.content ?? deletedLabel;
           } else {
             authorUsername = userById[r.targetId]?.username ?? r.targetId;
             postContent = null;

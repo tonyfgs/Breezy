@@ -39,4 +39,9 @@ export class SanctionRepository implements ISanctionRepository {
     async countActiveSanctions(targetType: 'user' | 'post'): Promise<number> {
         return SanctionModel.countDocuments({ targetType, fl_active: 1 });
     }
+
+    async getActivelySanctionedUserIds(userIds: string[]): Promise<string[]> {
+        const results = await SanctionModel.find({ targetId: { $in: userIds }, targetType: 'user', fl_active: 1 }, 'targetId');
+        return results.map(r => r.targetId);
+    }
 }

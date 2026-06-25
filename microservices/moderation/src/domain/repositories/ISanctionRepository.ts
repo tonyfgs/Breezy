@@ -13,4 +13,5 @@ export interface ISanctionRepository {
     createSanction(sanction: Sanction): Promise<Sanction>;
     updateSanction(id: string, data: Partial<Sanction>): Promise<Sanction>;
     countActiveSanctions(targetType: 'user' | 'post'): Promise<number>;
+    getActivelySanctionedUserIds(userIds: string[]): Promise<string[]>;
 }

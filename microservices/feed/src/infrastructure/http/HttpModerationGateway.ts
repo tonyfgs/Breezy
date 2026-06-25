@@ -7,7 +7,10 @@ export class HttpModerationGateway implements IModerationGateway {
     async getUserActive(userIds: string[]): Promise<string[]> {
         const response = await fetch(`${this.baseUrl}/moderation/users/active`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-service-secret': process.env.SERVICE_SECRET || '',
+            },
             body: JSON.stringify({ userIds }),
         });
         if (!response.ok) throw new Error(`Failed to fetch active users: ${response.statusText}`);

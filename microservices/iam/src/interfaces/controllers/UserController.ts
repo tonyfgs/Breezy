@@ -28,6 +28,8 @@ export class UserController implements IController {
         this.router.get('/health', (_req, res) => res.status(200).json({ service: 'auth', status: 'up' }));
         this.router.get('/users', authenticate, requireRole(['admin']), this.getAllUsers.bind(this));
         this.router.delete('/users/:username', authenticate, requireRole(['admin']), this.deleteUser.bind(this));
+        this.router.post('/admin/users', authenticate, requireRole(['admin']), this.adminCreateUser.bind(this));
+        this.router.post('/bootstrap', this.bootstrap.bind(this));
         this.router.post('/login', this.login.bind(this));
         this.router.post('/logout', this.logout.bind(this));
         this.router.post('/register', rejectIfAuthenticated, this.register.bind(this));
@@ -45,6 +47,36 @@ export class UserController implements IController {
             res.status(200).json({ message: 'User deleted successfully' });
         } catch (err) {
             res.status(404).json({ message: (err as Error).message });
+        }
+    }
+
+    private async adminCreateUser(req: any, res: any): Promise<void> {
+        try {
+            const result = await this.registerUseCase.execute(req.body);
+            if (!result) return res.status(409).json({ message: 'Username already exists' });
+            res.status(201).json(result);
+        } catch (err) {
+            res.status(400).json({ message: (err as Error).message });
+        }
+    }
+
+    private async bootstrap(req: any, res: any): Promise<void> {
+        const secret = req.headers['x-service-secret'];
+        if (!secret || secret !== process.env.SERVICE_SECRET) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        try {
+            const allUsers = await this.getAllUsersUseCase.execute();
+            const adminExists = allUsers.some((u: any) => u.role === 'admin');
+            if (adminExists) {
+                return res.status(403).json({ message: 'An admin already exists' });
+            }
+            const { username, password } = req.body;
+            const result = await this.registerUseCase.execute({ username, password, role: 'admin' });
+            if (!result) return res.status(409).json({ message: 'Username already exists' });
+            res.status(201).json(result);
+        } catch (err) {
+            res.status(400).json({ message: (err as Error).message });
         }
     }
 
@@ -69,7 +101,8 @@ export class UserController implements IController {
 
     private async register(req: any, res: any): Promise<void> {
         try {
-            const result = await this.registerUseCase.execute(req.body);
+            const { username, password } = req.body;
+            const result = await this.registerUseCase.execute({ username, password, role: 'user' });
             if (!result) return res.status(409).json({ message: 'Username already exists' });
             res.status(201).json(result);
         } catch (err) {

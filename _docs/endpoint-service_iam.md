@@ -1,7 +1,7 @@
 # Endpoints IAM
 
 > Service : IAM Service  
-> Dernière mise à jour : 2026-06-23
+> Dernière mise à jour : 2026-06-25
 
 ---
 
@@ -17,7 +17,8 @@ Port par défaut : `4001` (env `PORT`)
 | `GET` | `/auth/users` | `JWT` + `admin` | Retourne la liste de tous les comptes |
 | `DELETE` | `/auth/users/:username` | `JWT` + `admin` | Supprime un compte et son profil associé |
 | `POST` | `/auth/register` | Visiteur uniquement | Crée un compte utilisateur (403 si déjà authentifié) |
-| `POST` | `/auth/login` | Non | Authentifie et retourne un token JWT |
+| `POST` | `/auth/login` | Non | Authentifie, pose un cookie HttpOnly et retourne les infos utilisateur |
+| `POST` | `/auth/logout` | Non | Efface le cookie d'authentification côté serveur |
 | `GET` | `/auth/validate` | Usage interne nginx | Vérifie la validité d'un token JWT |
 
 ---
@@ -118,19 +119,49 @@ Body JSON (`LoginDTO`) :
 | `username` | `string` | oui | Nom d'utilisateur |
 | `password` | `string` | oui | Mot de passe en clair |
 
-Réponse `200` : objet `TokenDTO`
+Réponse `200` : pose un cookie `HttpOnly` + retourne les infos utilisateur (sans le token)
 
 ```json
 {
-  "token": "eyJ..."
+  "iamId": "string",
+  "profileId": "string",
+  "username": "string",
+  "role": "user"
 }
 ```
 
-Le token JWT contient : `{ iamId, profileId, username, role }`.
+Cookie posé sur la réponse (stocké côté client dans le cookie jar du navigateur) :
+
+| Attribut | Valeur |
+|----------|--------|
+| Nom | `token` |
+| `HttpOnly` | Oui — inaccessible depuis JavaScript |
+| `SameSite` | `Lax` |
+| `Secure` | `true` en production, `false` en dev |
+| `Path` | `/` |
+| `Max-Age` | 1 heure (aligné sur l'expiration du JWT) |
+
+Le token JWT embarqué dans le cookie contient : `{ iamId, profileId, username, role }`. Il expire nativement après `1h` (configurable via `JWT_EXPIRES_IN`).
 
 Erreur `401` si les credentials sont invalides.
 
 > Au login, l'IAM appelle `GET /users/username/:username` (via `x-service-secret`) pour récupérer le `profileId` à inclure dans le token.
+
+---
+
+### POST `/auth/logout`
+
+Aucun paramètre.
+
+Efface le cookie `token` côté serveur en posant un `Set-Cookie` avec `Max-Age=0`.
+
+Réponse `200` :
+
+```json
+{ "message": "Logged out" }
+```
+
+> Nécessaire car le cookie est `HttpOnly` — JavaScript ne peut pas le supprimer directement.
 
 ---
 
@@ -164,6 +195,8 @@ Erreur `401` si le token est absent, invalide ou expiré.
 
 ## Notes
 
-- Les tokens JWT expirent après `1h` (configurable via `JWT_EXPIRES_IN`)
-- Le logout est géré côté client (suppression du token en local)
+- Le cookie est stocké **côté client** (cookie jar du navigateur) — le serveur le pose via `Set-Cookie` mais ne le persiste nulle part
+- Le token JWT expire après `1h` (configurable via `JWT_EXPIRES_IN`) ; le `Max-Age` du cookie est aligné sur cette durée
+- Le logout est géré via `POST /auth/logout` qui envoie un `Set-Cookie` avec `Max-Age=0` pour effacer le cookie côté client
 - Le `passwordHash` n'est jamais exposé dans les réponses
+- nginx extrait le cookie `token` et l'injecte comme header `Authorization: Bearer <jwt>` sur les requêtes internes — les microservices reçoivent donc toujours un header `Authorization` classique

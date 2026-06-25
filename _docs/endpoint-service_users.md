@@ -1,7 +1,7 @@
 # Endpoints Users
 
 > Service : User Service  
-> Dernière mise à jour : 2026-06-23
+> Dernière mise à jour : 2026-06-25
 
 ---
 
@@ -13,11 +13,11 @@ Port par défaut : `4002` (env `PORT`)
 
 | Méthode | Chemin | Auth | Description |
 |---------|--------|------|-------------|
-| `GET` | `/users/` | `JWT` | Récupère tous les profils |
+| `GET` | `/users/` | `JWT` ou service interne | Récupère tous les profils |
 | `GET` | `/users/username/:username` | `JWT` ou service interne | Récupère un profil par son username |
 | `GET` | `/users/:id` | `JWT` | Récupère un profil par son ID |
 | `POST` | `/users/` | Non | Crée un nouveau profil (appelé par l'IAM au register) |
-| `PATCH` | `/users/:id` | `JWT` + owner ou `moderator`/`admin` | Met à jour les champs d'un profil |
+| `PATCH` | `/users/:id` | `JWT` ou service interne + owner/`moderator`/`admin` | Met à jour les champs d'un profil |
 | `DELETE` | `/users/username/:username` | `JWT`/service interne + `moderator`/`admin` | Supprime un profil par son username |
 | `DELETE` | `/users/:id` | `JWT` + owner ou `moderator`/`admin` | Supprime un profil par son ID |
 
@@ -25,7 +25,7 @@ Port par défaut : `4002` (env `PORT`)
 
 ### GET `/users/`
 
-Requiert : `Authorization: Bearer <token>`.
+Requiert : `Authorization: Bearer <token>` ou header `x-service-secret` (appel inter-service depuis le service modération).
 
 Réponse `200` : tableau de `ProfileDTO`
 
@@ -103,7 +103,7 @@ Erreur `400` si le `username` est déjà pris.
 
 ### PATCH `/users/:id`
 
-Requiert : `Authorization: Bearer <token>`. Seul le propriétaire du profil, un modérateur ou un administrateur peut modifier.
+Requiert : `Authorization: Bearer <token>` ou header `x-service-secret`. Seul le propriétaire du profil, un modérateur, un administrateur ou un service interne peut modifier.
 
 | Paramètre | Emplacement | Type | Requis | Description |
 |-----------|-------------|------|--------|-------------|
@@ -172,8 +172,8 @@ Erreur `404` si le profil n'existe pas.
 | Méthode | Chemin | Auth | Description |
 |---------|--------|------|-------------|
 | `POST` | `/follows/` | `JWT` | Crée une relation de follow |
-| `GET` | `/follows/:id/following` | `JWT` | Récupère les IDs des utilisateurs suivis par `:id` |
-| `GET` | `/follows/:id/followers` | `JWT` | Récupère les IDs des followers de `:id` |
+| `GET` | `/follows/:id/following` | `JWT` ou service interne | Récupère les IDs des utilisateurs suivis par `:id` (bannis exclus) |
+| `GET` | `/follows/:id/followers` | `JWT` ou service interne | Récupère les IDs des followers de `:id` |
 | `DELETE` | `/follows/` | `JWT` | Supprime une relation de follow |
 
 ---
@@ -214,7 +214,7 @@ Réponse `200` : tableau des IDs des utilisateurs suivis par `:id`
 ["686abc...", "686def..."]
 ```
 
-> Utilisé par le service Feed pour construire le fil d'actualité.
+> Utilisé par le service Feed pour construire le fil d'actualité. Les utilisateurs avec `fl_banned: 1` sont automatiquement exclus du résultat.
 
 ---
 

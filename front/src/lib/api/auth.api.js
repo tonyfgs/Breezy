@@ -13,3 +13,7 @@ export function registerApi(handle, password) {
     body: JSON.stringify({ username: handle, password }),
   });
 }
+
+export function logoutApi() {
+  return apiClient('/auth/logout', { method: 'POST' });
+}

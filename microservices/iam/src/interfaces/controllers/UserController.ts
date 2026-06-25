@@ -29,6 +29,7 @@ export class UserController implements IController {
         this.router.get('/users', authenticate, requireRole(['admin']), this.getAllUsers.bind(this));
         this.router.delete('/users/:username', authenticate, requireRole(['admin']), this.deleteUser.bind(this));
         this.router.post('/login', this.login.bind(this));
+        this.router.post('/logout', this.logout.bind(this));
         this.router.post('/register', rejectIfAuthenticated, this.register.bind(this));
         this.router.get('/validate', this.validate.bind(this));
     }
@@ -50,7 +51,20 @@ export class UserController implements IController {
     private async login(req: any, res: any): Promise<void> {
         const result = await this.loginUseCase.execute(req.body);
         if (!result) return res.status(401).json({ message: 'Invalid credentials' });
-        res.status(200).json(result);
+        const { token, ...userInfo } = result;
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.status(200).json(userInfo);
+    }
+
+    private logout(_req: any, res: any): void {
+        res.cookie('token', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 0 });
+        res.status(200).json({ message: 'Logged out' });
     }
 
     private async register(req: any, res: any): Promise<void> {

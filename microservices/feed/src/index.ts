@@ -12,7 +12,6 @@ import {MockModerationGateway} from "./infrastructure/http/mock/mockModerationGa
 import {IModerationGateway} from "./domain/gateway/IModerationGateway";
 import {IUserGateway} from "./domain/gateway/IUserGateway";
 import {IPostGateway} from "./domain/gateway/IPostGateway";
-import {SortByDateRule} from "./application/services/SortByDateRule";
 
 
 const PORT = process.env.PORT || 4004;
@@ -23,7 +22,7 @@ const httpModerationGateway: IModerationGateway = new MockModerationGateway(proc
 
 
 const sortingRules: Array<ISortingRule> = []
-sortingRules.push(new SortByDateRule());
+sortingRules.push(new SortByScoreRule());
 
 const feedRankingService = new FeedRankingService(sortingRules);
 const getFeedUseCase = new GetFeedUseCase(httpUserGateway, httpPostGateway, httpModerationGateway, feedRankingService);

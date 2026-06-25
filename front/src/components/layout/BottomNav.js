@@ -3,14 +3,18 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Home, Search, PenLine, User } from 'lucide-react';
+import { Home, Search, PenLine, User, Shield } from 'lucide-react';
 import CreatePostModal from '../modals/CreatePostModal';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const canModerate = ['moderator', 'admin'].includes(user?.role);
 
   return (
     <>
@@ -31,6 +35,13 @@ export default function BottomNav() {
               <PenLine size={20} strokeWidth={2.5} />
             </button>
           </li>
+          {canModerate && (
+            <li>
+              <Link href="/moderation" className={`bottom-nav__item${pathname.startsWith('/moderation') ? ' bottom-nav__item--active' : ''}`} aria-label={t('nav.moderation')}>
+                <Shield size={22} />
+              </Link>
+            </li>
+          )}
           <li>
             <Link href="/profile/me" className={`bottom-nav__item${pathname.startsWith('/profile') ? ' bottom-nav__item--active' : ''}`} aria-label={t('nav.myProfile')}>
               <User size={22} />

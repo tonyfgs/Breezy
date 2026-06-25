@@ -103,17 +103,15 @@ export default function ModerationQueuePage() {
   }
 
   async function handleBanReport(reportId, targetId, targetType, reason) {
-    await Promise.all([
-      createSanctionApi({
-        targetId,
-        targetType,
-        moderatorId: user?.profileId,
-        reason,
-        reportId,
-        type: 'ban',
-      }),
-      updateReportApi(reportId, { status: 'reviewed' }),
-    ]).catch(console.error);
+    await createSanctionApi({
+      targetId,
+      targetType,
+      moderatorId: user?.profileId,
+      reason,
+      reportId,
+      type: 'ban',
+    }).catch(err => { if (err?.status !== 409) throw err; });
+    await updateReportApi(reportId, { status: 'reviewed' }).catch(console.error);
     setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'reviewed' } : r));
   }
 

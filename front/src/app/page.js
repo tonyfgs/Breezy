@@ -1,7 +1,18 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
+
 export default function HomePage() {
-  return (
-    <main>
-      <h1>Breezy</h1>
-    </main>
-  );
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      router.replace(user ? '/feed' : '/login');
+    }
+  }, [user, loading, router]);
+
+  return null;
 }

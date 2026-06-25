@@ -1,10 +1,14 @@
-FROM node:20-alpine
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+FROM node:20-alpine AS builder
+RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json ./
-RUN pnpm install --prod
+RUN pnpm install
 COPY . .
-EXPOSE 4001
-CMD ["node", "src/index.js"]
+RUN pnpm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package.json ./
+CMD ["node", "dist/index.js"]

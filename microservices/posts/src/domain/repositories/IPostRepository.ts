@@ -1,0 +1,20 @@
+import { Post } from '../entities/Post';
+
+export interface PaginationParams {
+    page: number;
+    limit: number;
+}
+
+export interface IPostRepository {
+    getAllPosts(pagination: PaginationParams): Promise<{ posts: Post[]; total: number }>;
+    getPostsByUser(authorId: string, pagination: PaginationParams): Promise<{ posts: Post[]; total: number }>;
+    getPostsByAuthors(authorIds: string[], limit: number, cursor?: string): Promise<{ posts: Post[]; nextCursor: string | null }>;
+    countCommentsByPosts(postIds: string[]): Promise<Map<string, number>>;
+    getPost(id: string): Promise<Post>;
+    getComments(parentPostId: string, pagination: PaginationParams): Promise<{ posts: Post[]; total: number }>;
+    createPost(post: Post): Promise<Post>;
+    updatePost(id: string, post: Partial<Post>): Promise<Post>;
+    deletePost(id: string): Promise<void>;
+    countPostsToday(): Promise<number>;
+    countAllPosts(): Promise<number>;
+}

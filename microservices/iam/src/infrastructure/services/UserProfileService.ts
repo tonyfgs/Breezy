@@ -1,0 +1,41 @@
+const SERVICE_SECRET = process.env.SERVICE_SECRET || '';
+
+export class UserProfileService {
+    private readonly usersUrl: string;
+
+    constructor() {
+        this.usersUrl = process.env.USERS_SERVICE_URL || 'http://users:4002';
+    }
+
+    async createProfile(username: string): Promise<void> {
+        const response = await fetch(`${this.usersUrl}/users/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, bio: null, avatar: null }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to create profile for ${username}: ${response.status}`);
+        }
+    }
+
+    async getProfileId(username: string): Promise<string> {
+        const response = await fetch(`${this.usersUrl}/users/username/${username}`, {
+            headers: { 'x-service-secret': SERVICE_SECRET },
+        });
+        if (!response.ok) throw new Error(`Failed to get profile for ${username}: ${response.status}`);
+        const profile = await response.json() as { id: string };
+        return profile.id;
+    }
+
+    async deleteProfile(username: string): Promise<void> {
+        const response = await fetch(`${this.usersUrl}/users/username/${username}`, {
+            method: 'DELETE',
+            headers: { 'x-service-secret': SERVICE_SECRET },
+        });
+
+        if (!response.ok && response.status !== 404) {
+            throw new Error(`Failed to delete profile for ${username}: ${response.status}`);
+        }
+    }
+}

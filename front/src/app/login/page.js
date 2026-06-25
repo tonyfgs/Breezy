@@ -1,0 +1,126 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { AtSign, Lock } from 'lucide-react';
+import Input from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
+import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+
+export default function LoginPage() {
+  const { t } = useLanguage();
+  const { login } = useAuth();
+  const router = useRouter();
+  const [form, setForm] = useState({ handle: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  function handleChange(field) {
+    return (e) => {
+      setForm(prev => ({ ...prev, [field]: e.target.value }));
+      if (error) setError('');
+    };
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.handle.trim() || !form.password) {
+      setError(t('auth.loginError'));
+      return;
+    }
+    setLoading(true);
+    try {
+      await login(form.handle, form.password);
+      router.push('/feed');
+    } catch (err) {
+      setError(err.status === 401 ? t('auth.loginInvalid') : err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="auth-desktop-wrapper">
+      <div className="auth-brand-panel">
+        <div className="auth-brand-panel__logo">
+          <Image
+            src="/breezy_logo-white_bg.png"
+            alt="Breezy"
+            width={36}
+            height={36}
+            className="auth-brand-panel__logo-icon"
+          />
+          Breezy
+        </div>
+        <p className="auth-brand-panel__tagline">{t('auth.tagline')}</p>
+        <div className="auth-brand-panel__bubbles">
+          <div className="auth-bubble auth-bubble--incoming">{t('auth.bubbleIncoming')}</div>
+          <div className="auth-bubble auth-bubble--outgoing">{t('auth.bubbleOutgoing')}</div>
+        </div>
+      </div>
+
+      <div className="auth-page-wrapper">
+        <div className="auth-page">
+          <div className="auth-mobile-header">
+            <Image
+              src="/breezy_logo-white_bg.png"
+              alt="Breezy"
+              width={36}
+              height={36}
+              className="auth-mobile-header__logo"
+            />
+            Breezy
+          </div>
+
+          <div className="auth-content">
+            <h1 className="auth-title">{t('auth.loginTitle')}</h1>
+            <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
+
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <Input
+                label={t('auth.handleLabel')}
+                type="text"
+                name="handle"
+                placeholder={t('auth.handlePlaceholder')}
+                value={form.handle}
+                onChange={handleChange('handle')}
+                iconLeft={<AtSign size={16} />}
+              />
+
+              <Input
+                label={t('auth.passwordLabel')}
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange('password')}
+                iconLeft={<Lock size={16} />}
+                error={error}
+              />
+
+              <Button type="submit" fullWidth disabled={loading}>
+                {loading ? '…' : t('auth.loginSubmit')}
+              </Button>
+            </form>
+
+            <p className="auth-switch">
+              {t('auth.noAccount')}{' '}
+              <Link href="/register">{t('auth.joinBreezy')}</Link>
+            </p>
+
+            <p className="auth-legal-footer">
+              <Link href="/legal/mentions">{t('auth.legalMentions')}</Link>
+              {' · '}
+              <Link href="/legal/terms">{t('auth.legalTerms')}</Link>
+              {' · '}
+              <Link href="/legal/privacy">{t('auth.legalPrivacy')}</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

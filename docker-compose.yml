@@ -13,19 +13,11 @@ services:
     build:
       context: ./api-gateway
     ports:
-      - "4000:4000"
-    environment:
-      - PORT=4000
-      - NODE_ENV=production
-      - IAM_URL=http://iam:4001
-      - USERS_URL=http://users:4002
-      - POSTS_URL=http://posts:4003
-      - NOTIFICATIONS_URL=http://notifications:4004
+      - "4000:80"
     depends_on:
       - iam
       - users
       - posts
-      - notifications
 
   iam:
     build:
@@ -35,6 +27,22 @@ services:
     environment:
       - PORT=4001
       - NODE_ENV=production
+      - DB_HOST=iam-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=iam_db
+    depends_on:
+      - iam-db
+
+  iam-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: iam_db
+    volumes:
+      - iam_data:/var/lib/postgresql/data
 
   users:
     build:
@@ -44,6 +52,14 @@ services:
     environment:
       - PORT=4002
       - NODE_ENV=production
+      - MONGODB_URI=mongodb://users-db:27017/breezy-users
+    depends_on:
+      - users-db
+
+  users-db:
+    image: mongo:7
+    volumes:
+      - users_data:/data/db
 
   posts:
     build:
@@ -53,12 +69,31 @@ services:
     environment:
       - PORT=4003
       - NODE_ENV=production
+      - MONGODB_URI=mongodb://posts-db:27017/breezy-posts
+    depends_on:
+      - posts-db
 
-  notifications:
+  posts-db:
+    image: mongo:7
+    volumes:
+      - posts_data:/data/db
+
+  feed:
     build:
-      context: ./microservices/notifications
+      context: ./microservices/feed
     ports:
       - "4004:4004"
     environment:
       - PORT=4004
       - NODE_ENV=production
+      - BASE_URL_POSTS=http://posts:4003
+      - BASE_URL_USERS=http://users:4002
+      - BASE_URL_MODERATION=http://moderation:4005
+    depends_on:
+      - posts
+      - users
+
+volumes:
+  iam_data:
+  posts_data:
+  users_data:

@@ -18,6 +18,7 @@ export class GetPostUseCase {
             id: post.id!,
             authorId: post.authorId,
             content: post.content,
+            parentPostId: post.parentPostId,
             likeCount: likeCounts.get(id) ?? 0,
             commentCount: commentCounts.get(id) ?? 0,
             createdAt: post.createdAt,

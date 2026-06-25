@@ -2,6 +2,7 @@ import "./globals.css";
 import { ThemeProvider } from "../context/ThemeContext";
 import { LanguageProvider } from "../context/LanguageContext";
 import { AuthProvider } from "../context/AuthContext";
+import { AppEventsProvider } from "../context/AppEventsContext";
 
 export const metadata = {
   title: "Breezy",
@@ -29,7 +30,9 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeProvider>
           <LanguageProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <AppEventsProvider>{children}</AppEventsProvider>
+            </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

@@ -6,6 +6,7 @@ import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
+import { useAppEvents } from '../../context/AppEventsContext';
 import { createPostApi } from '../../lib/api/posts.api';
 
 const MAX_CHARS = 280;
@@ -13,6 +14,7 @@ const MAX_CHARS = 280;
 export default function CreatePostModal({ onClose }) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { notifyPostCreated } = useAppEvents();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +27,7 @@ export default function CreatePostModal({ onClose }) {
     setLoading(true);
     try {
       await createPostApi(user?.profileId, content.trim());
+      notifyPostCreated();
       onClose();
     } catch {
       setLoading(false);

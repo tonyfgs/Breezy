@@ -24,6 +24,7 @@ export class GetPostsByAuthorsUseCase {
                 id: p.id!,
                 authorId: p.authorId,
                 content: p.content,
+                parentPostId: p.parentPostId,
                 likeCount: likeCounts.get(p.id!) ?? 0,
                 commentCount: commentCounts.get(p.id!) ?? 0,
                 createdAt: p.createdAt,

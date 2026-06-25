@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, MessageCircle, Flag, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Flag, MoreHorizontal, Pencil, Trash2, CornerUpLeft } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
 import ReportModal from '../modals/ReportModal';
@@ -10,7 +10,7 @@ import EditPostModal from '../modals/EditPostModal';
 import ConfirmModal from '../modals/ConfirmModal';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import { likePostApi, unlikePostApi, deletePostApi } from '../../lib/api/posts.api';
+import { likePostApi, unlikePostApi, deletePostApi, getParentPostAuthorApi } from '../../lib/api/posts.api';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -36,8 +36,16 @@ export default function PostCard({ post, onDeleted }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [parentAuthor, setParentAuthor] = useState(null);
 
   const isOwner = user?.profileId === post.sk_authorId;
+
+  useEffect(() => {
+    if (!post.sk_parentPostId) return;
+    getParentPostAuthorApi(post.sk_parentPostId)
+      .then(({ username }) => setParentAuthor(username))
+      .catch(() => {});
+  }, [post.sk_parentPostId]);
 
   useEffect(() => {
     if (!showMenu) return;
@@ -143,6 +151,21 @@ export default function PostCard({ post, onDeleted }) {
             </button>
           )}
         </div>
+
+        {post.sk_parentPostId && (
+          <button
+            className="post-card__reply"
+            onClick={e => { e.stopPropagation(); router.push(`/post/${post.sk_parentPostId}`); }}
+          >
+            <CornerUpLeft size={12} />
+            <span>
+              {t('post.replyTo')}{' '}
+              <span className="post-card__reply-handle">
+                {parentAuthor ? `@${parentAuthor}` : '…'}
+              </span>
+            </span>
+          </button>
+        )}
 
         <p className="post-card__body">{content}</p>
 

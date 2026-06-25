@@ -28,7 +28,7 @@ export async function getFeedApi(userId, { limit = 20, cursor } = {}) {
       fl_liked: likedStatuses[i] ?? false,
       ts_createdAt: p.createdAt,
       ts_updatedAt: p.createdAt,
-      sk_parentPostId: null,
+      sk_parentPostId: p.parentPostId ?? null,
       author: {
         sk_id: p.authorId,
         nm_username: userMap.get(p.authorId) ?? p.authorId,

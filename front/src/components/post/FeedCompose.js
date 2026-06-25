@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Avatar from '../ui/Avatar';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
+import { useAppEvents } from '../../context/AppEventsContext';
 import { createPostApi } from '../../lib/api/posts.api';
 
 const MAX_LENGTH = 280;
@@ -11,6 +12,7 @@ const MAX_LENGTH = 280;
 export default function FeedCompose({ onPostCreated }) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { notifyPostCreated } = useAppEvents();
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef(null);
@@ -35,6 +37,7 @@ export default function FeedCompose({ onPostCreated }) {
       const post = await createPostApi(user.profileId, content);
       setContent('');
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      notifyPostCreated();
       onPostCreated?.(post);
     } catch (err) {
       console.error(err);

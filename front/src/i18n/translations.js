@@ -96,6 +96,7 @@ export const translations = {
       noResults: 'Aucun résultat pour « {query} »',
     },
     post: {
+      replyTo: 'En réponse à',
       headerTitle: 'Breezy',
       likesLabel: "J'aime",
       repliesLabel: 'Réponses',
@@ -309,6 +310,7 @@ export const translations = {
       noResults: 'No results for "{query}"',
     },
     post: {
+      replyTo: 'Replying to',
       headerTitle: 'Breezy',
       likesLabel: 'Likes',
       repliesLabel: 'Replies',

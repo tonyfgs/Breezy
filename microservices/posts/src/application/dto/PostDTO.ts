@@ -4,6 +4,7 @@ export interface PostWithStatsDTO {
     id: string;
     authorId: string;
     content: string;
+    parentPostId: string | null;
     likeCount: number;
     commentCount: number;
     createdAt: Date;

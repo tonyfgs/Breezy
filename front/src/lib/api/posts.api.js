@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { getAllProfilesApi } from './users.api';
+import { getAllProfilesApi, getProfileApi } from './users.api';
 
 function normalizePost(p, authorUsername = null) {
   return {
@@ -29,6 +29,12 @@ export function createPostApi(authorId, content, parentPostId = null) {
 
 export function getPostRawApi(id) {
   return apiClient(`/posts/${id}`);
+}
+
+export async function getParentPostAuthorApi(parentPostId) {
+  const post = await getPostRawApi(parentPostId);
+  const profile = await getProfileApi(post.authorId);
+  return { username: profile.username, postId: parentPostId };
 }
 
 export async function getPostApi(id) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Settings } from 'lucide-react';
 import AppLayout from '../../../components/layout/AppLayout';
@@ -8,6 +8,7 @@ import Avatar, { getColor } from '../../../components/ui/Avatar';
 import PostCard from '../../../components/post/PostCard';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAuth } from '../../../context/AuthContext';
+import { useAppEvents } from '../../../context/AppEventsContext';
 import { getProfileByUsernameApi } from '../../../lib/api/users.api';
 import { followApi, unfollowApi, getFollowersApi, getFollowingApi } from '../../../lib/api/follows.api';
 import { getPostsByUserApi } from '../../../lib/api/posts.api';
@@ -17,11 +18,13 @@ export default function ProfilePage({ params }) {
   const router = useRouter();
   const { t, dateLocale } = useLanguage();
   const { user } = useAuth();
+  const { ownPostsVersion, notifyFollowChanged } = useAppEvents();
 
   const username = rawUsername === 'me' ? user?.username : rawUsername;
   const isOwnProfile = username === user?.username;
 
   const [profile, setProfile] = useState(null);
+  const [profileId, setProfileId] = useState(null);
   const [posts, setPosts] = useState([]);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -36,6 +39,7 @@ export default function ProfilePage({ params }) {
       .then(async p => {
         if (!p) { setLoading(false); return; }
         setProfile(p);
+        setProfileId(isOwnProfile ? user.profileId : p.id);
 
         const followQueryId = isOwnProfile ? user.profileId : p.id;
         const [followers, followingList, postsData] = await Promise.all([
@@ -57,6 +61,17 @@ export default function ProfilePage({ params }) {
       .finally(() => setLoading(false));
   }, [username, user]);
 
+  const loadPosts = useCallback(() => {
+    if (!profileId || !profile) return;
+    getPostsByUserApi(profileId, 1, 20, profile.username)
+      .then(data => setPosts(data.posts ?? []))
+      .catch(console.error);
+  }, [profileId, profile]);
+
+  useEffect(() => {
+    if (ownPostsVersion > 0 && isOwnProfile) loadPosts();
+  }, [ownPostsVersion]);
+
   async function handleFollowToggle() {
     if (!user || !profile) return;
     const myId = user.profileId;
@@ -67,6 +82,7 @@ export default function ProfilePage({ params }) {
         setFollowing(true);
         setFollowersCount(c => c + 1);
       });
+      notifyFollowChanged();
     } else {
       setFollowing(true);
       setFollowersCount(c => c + 1);
@@ -74,6 +90,7 @@ export default function ProfilePage({ params }) {
         setFollowing(false);
         setFollowersCount(c => c - 1);
       });
+      notifyFollowChanged();
     }
   }
 

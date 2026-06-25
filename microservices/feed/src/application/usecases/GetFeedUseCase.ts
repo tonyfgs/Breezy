@@ -15,8 +15,14 @@ export class GetFeedUseCase {
     async execute(userId: string, limit: number = 20, cursor?: string): Promise<{ posts: PostEntity[]; nextCursor?: string }> {
         const followedUserIds = await this.userGateway.getFollowingUser(userId);
         const activeUserIds = await this.moderationGateway.getUserActive(followedUserIds);
-        const { posts, nextCursor } = await this.postGateway.getPostsByAuthorsIds(activeUserIds, limit, cursor);
+
+        const { posts } = await this.postGateway.getPostsByAuthorsIds(activeUserIds, 500);
         const rankedPosts = this.feedRankingService.rank(posts);
-        return { posts: rankedPosts, nextCursor };
+
+        const offset = cursor ? (parseInt(cursor, 10) || 0) : 0;
+        const page = rankedPosts.slice(offset, offset + limit);
+        const nextCursor = offset + limit < rankedPosts.length ? String(offset + limit) : undefined;
+
+        return { posts: page, nextCursor };
     }
 }

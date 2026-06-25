@@ -6,12 +6,13 @@ import {HttpPostGateway} from "./infrastructure/http/HttpPostGateway";
 import {HttpUserGateway} from "./infrastructure/http/HttpUserGateway";
 import {HttpModerationGateway} from "./infrastructure/http/HttpModerationGateway";
 import {GetFeedUseCase} from "./application/usecases/GetFeedUseCase";
-import {SortByDateRule} from "./application/services/SortByDateRule";
+import {SortByScoreRule} from "./application/services/SortByScoreRule";
 import {ISortingRule} from "./domain/services/ISortingRule";
 import {MockModerationGateway} from "./infrastructure/http/mock/mockModerationGateway";
 import {IModerationGateway} from "./domain/gateway/IModerationGateway";
 import {IUserGateway} from "./domain/gateway/IUserGateway";
 import {IPostGateway} from "./domain/gateway/IPostGateway";
+import {SortByDateRule} from "./application/services/SortByDateRule";
 
 
 const PORT = process.env.PORT || 4004;
@@ -26,7 +27,6 @@ sortingRules.push(new SortByDateRule());
 
 const feedRankingService = new FeedRankingService(sortingRules);
 const getFeedUseCase = new GetFeedUseCase(httpUserGateway, httpPostGateway, httpModerationGateway, feedRankingService);
-
 const controllerTable: Array<IController> = [];
 const feedController = new FeedController(getFeedUseCase);
 controllerTable.push(feedController);

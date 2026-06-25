@@ -45,7 +45,7 @@ export default function ProfilePage({ params }) {
         const [followers, followingList, postsData] = await Promise.all([
           getFollowersApi(followQueryId).catch(() => []),
           getFollowingApi(followQueryId).catch(() => []),
-          getPostsByUserApi(isOwnProfile ? user.profileId : p.id, 1, 20, p.username).catch(() => ({ posts: [] })),
+          getPostsByUserApi(isOwnProfile ? user.profileId : p.id, 1, 20, p.username, user?.profileId).catch(() => ({ posts: [] })),
         ]);
 
         setFollowersCount(Array.isArray(followers) ? followers.length : 0);
@@ -63,7 +63,7 @@ export default function ProfilePage({ params }) {
 
   const loadPosts = useCallback(() => {
     if (!profileId || !profile) return;
-    getPostsByUserApi(profileId, 1, 20, profile.username)
+    getPostsByUserApi(profileId, 1, 20, profile.username, user?.profileId)
       .then(data => setPosts(data.posts ?? []))
       .catch(console.error);
   }, [profileId, profile]);

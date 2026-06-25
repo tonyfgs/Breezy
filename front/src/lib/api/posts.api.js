@@ -51,10 +51,16 @@ export async function getLikeStatusApi(postId, userId) {
   return data.liked === true;
 }
 
-export async function getPostsByUserApi(userId, page = 1, limit = 20, authorUsername = null) {
+export async function getPostsByUserApi(userId, page = 1, limit = 20, authorUsername = null, viewerId = null) {
   const data = await apiClient(`/posts/user/${userId}?page=${page}&limit=${limit}`);
+  const posts = data.data ?? [];
+
+  const likedStatuses = viewerId
+    ? await Promise.all(posts.map(p => getLikeStatusApi(p.id, String(viewerId)).catch(() => false)))
+    : posts.map(() => false);
+
   return {
-    posts: (data.data ?? []).map(p => normalizePost(p, authorUsername)),
+    posts: posts.map((p, i) => ({ ...normalizePost(p, authorUsername), fl_liked: likedStatuses[i] })),
     total: data.total ?? 0,
     totalPages: data.totalPages ?? 1,
   };

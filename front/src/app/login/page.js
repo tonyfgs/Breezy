@@ -90,19 +90,16 @@ export default function LoginPage() {
                 iconLeft={<AtSign size={16} />}
               />
 
-              <div className="auth-field-group">
-                <Input
-                  label={t('auth.passwordLabel')}
-                  type="password"
-                  name="password"
-                  placeholder="••••••••"
-                  value={form.password}
-                  onChange={handleChange('password')}
-                  iconLeft={<Lock size={16} />}
-                  error={error}
-                />
-                <Link href="/forgot-password" className="auth-forgot-link">{t('auth.forgotPassword')}</Link>
-              </div>
+              <Input
+                label={t('auth.passwordLabel')}
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange('password')}
+                iconLeft={<Lock size={16} />}
+                error={error}
+              />
 
               <Button type="submit" fullWidth disabled={loading}>
                 {loading ? '…' : t('auth.loginSubmit')}
@@ -112,6 +109,14 @@ export default function LoginPage() {
             <p className="auth-switch">
               {t('auth.noAccount')}{' '}
               <Link href="/register">{t('auth.joinBreezy')}</Link>
+            </p>
+
+            <p className="auth-legal-footer">
+              <Link href="/legal/mentions">{t('auth.legalMentions')}</Link>
+              {' · '}
+              <Link href="/legal/terms">{t('auth.legalTerms')}</Link>
+              {' · '}
+              <Link href="/legal/privacy">{t('auth.legalPrivacy')}</Link>
             </p>
           </div>
         </div>

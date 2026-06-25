@@ -49,10 +49,16 @@ Client (navigateur)
   │  Cookie HttpOnly: token=<jwt>
   ▼
 [nginx — api-gateway :4000]
-  │  Lit $cookie_token → injecte Authorization: Bearer <jwt>
-  │  auth_request → IAM /auth/validate (avec header injecté)
-  │  → 401 si cookie absent ou token invalide
-  │  Forward la requête + header Authorization injecté
+  │
+  ├─ map $cookie_token → $auth_header = "Bearer <jwt>"
+  │    (fallback sur $http_authorization si cookie absent)
+  │
+  ├─ /auth/*   ──→  proxy_set_header Authorization $auth_header
+  │                 (pas d'auth_request — l'IAM gère l'auth par route)
+  │
+  └─ toutes les autres routes :
+       auth_request → IAM /auth/validate  → 401 si token invalide
+       proxy_set_header Authorization $auth_header
   ▼
 [Microservice]
   │
@@ -61,7 +67,9 @@ Client (navigateur)
   └─ controller            vérifie l'ownership si nécessaire
 ```
 
-> Le frontend n'envoie jamais de header `Authorization` manuellement. Le cookie est transmis automatiquement par le navigateur (`credentials: 'include'`), et nginx se charge de la traduction cookie → header pour les microservices.
+> Le frontend n'envoie jamais de header `Authorization` manuellement. Le cookie est transmis automatiquement par le navigateur (`credentials: 'include'`), et nginx se charge de la traduction cookie → header.
+>
+> Exception : `/auth/` n'a pas de `auth_request` global car elle contient des routes publiques (login, register). nginx transmet quand même le header — l'IAM décide route par route de l'exiger ou non.
 
 ---
 
@@ -111,12 +119,15 @@ Contexte : l'IAM appelle le service users lors du login (pour récupérer le `pr
 
 | Route | Méthode | Accès | Middleware |
 |---|---|---|---|
-| `/auth/register` | POST | Visiteur uniquement (403 si token valide présent) | `rejectIfAuthenticated` |
+| `/auth/register` | POST | Visiteur uniquement (403 si token valide présent) — rôle forcé à `user` | `rejectIfAuthenticated` |
 | `/auth/login` | POST | Public | — |
 | `/auth/logout` | POST | Public | — |
 | `/auth/validate` | GET | Interne nginx | — |
+| `/auth/health` | GET | Public | — |
 | `/auth/users` | GET | `admin` | `authenticate`, `requireRole(['admin'])` |
 | `/auth/users/:username` | DELETE | `admin` | `authenticate`, `requireRole(['admin'])` |
+| `/auth/admin/users` | POST | `admin` | `authenticate`, `requireRole(['admin'])` |
+| `/auth/bootstrap` | POST | `x-service-secret` + aucun admin existant | Vérification manuelle du secret + guard dans le handler |
 
 ### Users — Profils (`/users/`)
 
@@ -166,11 +177,12 @@ Note : `follwerId` est extrait de `req.user.id` (le token), non du body. Les uti
 |---|---|---|---|
 | `/feed/:idUser` | GET | Owner du feed, `admin`, `moderator` | `authenticate` + vérification `req.user.id === idUser` dans le controller |
 
-### Moderation — Stats (`/moderation/`)
+### Moderation — Stats & inter-services (`/moderation/`)
 
 | Route | Méthode | Accès | Middleware |
 |---|---|---|---|
 | `/moderation/stats` | GET | `moderator`, `admin` | `authenticate`, `requireRole(['moderator','admin'])` |
+| `/moderation/users/active` | POST | Service interne | `authenticateOrService` |
 
 ### Moderation — Reports (`/reports/`)
 
@@ -222,6 +234,7 @@ Tous les appels inter-services utilisent le header `x-service-secret` pour s'aut
 | `moderation` | `PATCH /posts/:id` | `x-service-secret` | Mettre à jour `fl_banned` lors d'un ban/révocation |
 | `feed` | `GET /follows/:id/following` | `x-service-secret` | Récupérer les auteurs à inclure dans le feed |
 | `feed` | `POST /posts/by-authors` | `x-service-secret` | Récupérer les posts du feed |
+| `feed` | `POST /moderation/users/active` | `x-service-secret` | Filtrer les auteurs bannis (double couche avec `FollowRepository`) |
 
 Le secret est défini via la variable d'environnement `SERVICE_SECRET` (partagée entre tous les services dans `docker-compose`).
 
@@ -239,9 +252,10 @@ Le secret est défini via la variable d'environnement `SERVICE_SECRET` (partagé
 | `posts` | `JWT_SECRET` | Vérification des tokens |
 | `posts` | `SERVICE_SECRET` | Validation du header inter-services |
 | `feed` | `JWT_SECRET` | Vérification des tokens |
-| `feed` | `SERVICE_SECRET` | Appels inter-services vers `users` et `posts` |
+| `feed` | `SERVICE_SECRET` | Appels inter-services vers `users`, `posts` et `moderation` |
 | `feed` | `BASE_URL_USERS` | URL du service users (`http://users:4002`) |
 | `feed` | `BASE_URL_POSTS` | URL du service posts (`http://posts:4003`) |
+| `feed` | `BASE_URL_MODERATION` | URL du service modération (`http://moderation:4005`) |
 | `moderation` | `JWT_SECRET` | Vérification des tokens |
 | `moderation` | `SERVICE_SECRET` | Appels inter-services + validation du header |
 | `moderation` | `BASE_URL_USERS` | URL du service users (`http://users:4002`) |

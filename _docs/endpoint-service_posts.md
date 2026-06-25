@@ -103,7 +103,7 @@ Requiert : `Authorization: Bearer <token>`.
 
 Réponse `200` : objet `PaginatedPostsDTO`
 
-> Seuls les posts de premier niveau sont retournés (`parentPostId: null`).
+> Seuls les posts de premier niveau sont retournés (`parentPostId: null`). Les posts avec `fl_banned: 1` sont **exclus** de la réponse.
 
 ---
 
@@ -118,6 +118,8 @@ Requiert : `Authorization: Bearer <token>`.
 | `limit` | query | `number` | non | `10` | Nombre d'éléments par page (min : 1, max : 100) |
 
 Réponse `200` : objet `PaginatedPostsDTO`
+
+> Les commentaires avec `fl_banned: 1` sont **exclus** de la réponse.
 
 ---
 

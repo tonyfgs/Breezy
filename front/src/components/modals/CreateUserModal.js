@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { X, AtSign, Lock, ChevronDown } from 'lucide-react';
+import { X, AtSign, Lock, ChevronDown, CheckCircle } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { useLanguage } from '../../context/LanguageContext';
+import { createAdminUserApi } from '../../lib/api/auth.api';
 
 const ROLES = [
   { value: 'user', key: 'modal.roleUser' },
@@ -16,6 +17,8 @@ export default function CreateUserModal({ onClose }) {
   const { t } = useLanguage();
   const [form, setForm] = useState({ nm_username: '', password: '', cd_role: '' });
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   function handleChange(field) {
     return (e) => {
@@ -42,19 +45,44 @@ export default function CreateUserModal({ onClose }) {
     return errs;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
-    // TODO: API - POST /api/admin/users { nm_username, password, cd_role }
-    onClose();
+    setSubmitting(true);
+    try {
+      await createAdminUserApi(form.nm_username.trim(), form.password, form.cd_role);
+      setSubmitted(true);
+      setTimeout(onClose, 2000);
+    } catch (err) {
+      if (err?.status === 409) {
+        setErrors({ nm_username: t('auth.handleTaken') });
+      } else {
+        setErrors({ nm_username: t('auth.registerError') });
+      }
+      setSubmitting(false);
+    }
   }
 
   function handleOverlayClick(e) {
     if (e.target === e.currentTarget) onClose();
+  }
+
+  if (submitted) {
+    return (
+      <div className="modal-overlay" onClick={handleOverlayClick}>
+        <div className="modal modal--confirm">
+          <div className="modal__confirm-icon modal__confirm-icon--success">
+            <CheckCircle size={24} />
+          </div>
+          <h2 className="modal__confirm-title">{t('moderation.modal.successTitle')}</h2>
+          <p className="modal__confirm-message">{t('moderation.modal.successMessage')}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -110,8 +138,8 @@ export default function CreateUserModal({ onClose }) {
             {errors.cd_role && <span className="input-hint input-hint--error">{errors.cd_role}</span>}
           </div>
 
-          <Button type="submit" fullWidth>
-            {t('moderation.modal.submit')}
+          <Button type="submit" fullWidth disabled={submitting}>
+            {submitting ? '…' : t('moderation.modal.submit')}
           </Button>
         </form>
       </div>

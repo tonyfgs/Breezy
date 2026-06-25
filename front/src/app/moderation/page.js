@@ -151,14 +151,16 @@ export default function ModerationPage() {
             <Lock size={11} />
             {user?.role ?? t('moderation.moderatorRole')}
           </span>
-          <button
-            className="moderation-create-btn"
-            onClick={() => setShowCreateUserModal(true)}
-            aria-label={t('moderation.createUser')}
-          >
-            <UserPlus size={16} />
-            <span className="moderation-create-btn__label">{t('moderation.createUser')}</span>
-          </button>
+          {user?.role === 'admin' && (
+            <button
+              className="moderation-create-btn"
+              onClick={() => setShowCreateUserModal(true)}
+              aria-label={t('moderation.createUser')}
+            >
+              <UserPlus size={16} />
+              <span className="moderation-create-btn__label">{t('moderation.createUser')}</span>
+            </button>
+          )}
         </div>
       </header>
 

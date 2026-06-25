@@ -17,3 +17,10 @@ export function registerApi(handle, password) {
 export function logoutApi() {
   return apiClient('/auth/logout', { method: 'POST' });
 }
+
+export function createAdminUserApi(username, password, role) {
+  return apiClient('/auth/admin/users', {
+    method: 'POST',
+    body: JSON.stringify({ username, password, role }),
+  });
+}

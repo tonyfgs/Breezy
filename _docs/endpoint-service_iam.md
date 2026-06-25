@@ -16,7 +16,9 @@ Port par défaut : `4001` (env `PORT`)
 | `GET` | `/auth/health` | Non | Vérifie que le service est up |
 | `GET` | `/auth/users` | `JWT` + `admin` | Retourne la liste de tous les comptes |
 | `DELETE` | `/auth/users/:username` | `JWT` + `admin` | Supprime un compte et son profil associé |
-| `POST` | `/auth/register` | Visiteur uniquement | Crée un compte utilisateur (403 si déjà authentifié) |
+| `POST` | `/auth/admin/users` | `JWT` + `admin` | Crée un compte avec un rôle arbitraire |
+| `POST` | `/auth/bootstrap` | `x-service-secret` | Crée le premier compte admin (auto-désactivé après) |
+| `POST` | `/auth/register` | Visiteur uniquement | Crée un compte `user` (403 si déjà authentifié) |
 | `POST` | `/auth/login` | Non | Authentifie, pose un cookie HttpOnly et retourne les infos utilisateur |
 | `POST` | `/auth/logout` | Non | Efface le cookie d'authentification côté serveur |
 | `GET` | `/auth/validate` | Usage interne nginx | Vérifie la validité d'un token JWT |
@@ -78,17 +80,75 @@ Erreur `404` si l'utilisateur n'existe pas.
 
 ---
 
-### POST `/auth/register`
+### POST `/auth/admin/users`
 
-Retourne **403** si un token JWT valide est présent dans le header `Authorization`. Un utilisateur déjà connecté doit supprimer son token avant de pouvoir créer un nouveau compte.
+Requiert : `Authorization: Bearer <token>` avec rôle `admin`.
 
-Body JSON (`CreateUserDTO`) :
+Crée un compte avec un rôle arbitraire (`user`, `moderator` ou `admin`). Utiliser cet endpoint depuis l'interface de modération.
+
+Body JSON :
 
 | Champ | Type | Requis | Description |
 |-------|------|--------|-------------|
 | `username` | `string` | oui | Nom d'utilisateur unique |
 | `password` | `string` | oui | Mot de passe en clair (hashé en base) |
-| `role` | `'user' \| 'moderator' \| 'admin'` | non | Rôle (défaut : `"user"`) |
+| `role` | `'user' \| 'moderator' \| 'admin'` | oui | Rôle du compte à créer |
+
+Réponse `201` : objet `UserDTO`
+
+Erreur `409` si le `username` est déjà pris.
+
+Erreur `400` si `role` est invalide ou si la création du profil échoue.
+
+---
+
+### POST `/auth/bootstrap`
+
+Endpoint de bootstrap pour créer le **premier compte admin** avant qu'aucun admin n'existe.
+
+Header requis :
+
+| Header | Valeur |
+|--------|--------|
+| `x-service-secret` | Valeur de la variable d'environnement `SERVICE_SECRET` |
+
+Body JSON :
+
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| `username` | `string` | oui | Nom d'utilisateur du premier admin |
+| `password` | `string` | oui | Mot de passe en clair |
+
+Réponse `201` : objet `UserDTO` avec `role: "admin"`
+
+Erreur `401` si le `x-service-secret` est absent ou incorrect.
+
+Erreur `403` si un compte admin existe déjà — l'endpoint est auto-désactivé.
+
+Erreur `409` si le `username` est déjà pris.
+
+> Exemple curl :
+> ```bash
+> curl -X POST http://localhost:4000/auth/bootstrap \
+>   -H "Content-Type: application/json" \
+>   -H "x-service-secret: <SERVICE_SECRET>" \
+>   -d '{"username":"admin","password":"motdepasse"}'
+> ```
+
+---
+
+### POST `/auth/register`
+
+Retourne **403** si un token JWT valide est présent dans le header `Authorization`.
+
+Le rôle est **toujours forcé à `"user"`** — il n'est pas possible de s'inscrire avec un rôle supérieur via cette route publique.
+
+Body JSON :
+
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| `username` | `string` | oui | Nom d'utilisateur unique |
+| `password` | `string` | oui | Mot de passe en clair (hashé en base) |
 
 Réponse `201` : objet `UserDTO`
 
@@ -104,7 +164,7 @@ Réponse `201` : objet `UserDTO`
 
 Erreur `409` si le `username` est déjà pris.
 
-Erreur `400` si `role` n'est pas une valeur valide ou si la création du profil échoue (l'inscription est alors annulée).
+Erreur `400` si la création du profil échoue (l'inscription est alors annulée).
 
 > La création d'un compte déclenche un appel interne vers `POST /users/` (route publique) pour créer le profil associé. Si cet appel échoue, le compte IAM est supprimé.
 

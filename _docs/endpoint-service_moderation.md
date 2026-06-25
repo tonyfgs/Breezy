@@ -9,11 +9,34 @@ Port par défaut : `4005` (env `PORT`)
 
 ---
 
-## Statistiques
+## Statistiques & inter-services
 
 | Méthode | Chemin | Auth | Description |
 |---------|--------|------|-------------|
 | `GET` | `/moderation/stats` | `JWT` + `moderator`/`admin` | Retourne les statistiques globales de la plateforme |
+| `POST` | `/moderation/users/active` | `x-service-secret` | Filtre une liste d'IDs utilisateurs et retourne ceux sans sanction active |
+
+---
+
+### POST `/moderation/users/active`
+
+Requiert : header `x-service-secret`. Appelé par le service feed pour filtrer les utilisateurs bannis avant de récupérer les posts.
+
+Body JSON :
+
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| `userIds` | `string[]` | oui | Liste d'IDs utilisateurs à vérifier |
+
+Réponse `200` : tableau des IDs sans sanction `user` active
+
+```json
+["id1", "id3"]
+```
+
+Erreur `400` si `userIds` n'est pas un tableau.
+
+> Utilisé dans la pipeline feed : `FollowRepository` filtre déjà les users bannis au niveau du profil (`fl_banned`), cet endpoint constitue la seconde couche de filtrage via les sanctions actives.
 
 ---
 

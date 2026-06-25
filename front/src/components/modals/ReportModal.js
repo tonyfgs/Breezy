@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, CheckCircle } from 'lucide-react';
 import Button from '../ui/Button';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +21,7 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
   const { user } = useAuth();
   const [selectedReason, setSelectedReason] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -28,15 +29,30 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
     setSubmitting(true);
     try {
       await createReportApi(user.profileId, targetId, targetType, selectedReason);
+      setSubmitted(true);
+      setTimeout(onClose, 1800);
     } catch (err) {
       console.error(err);
-    } finally {
       onClose();
     }
   }
 
   function handleOverlayClick(e) {
     if (e.target === e.currentTarget) onClose();
+  }
+
+  if (submitted) {
+    return (
+      <div className="modal-overlay" onClick={handleOverlayClick}>
+        <div className="modal modal--confirm">
+          <div className="modal__confirm-icon modal__confirm-icon--success">
+            <CheckCircle size={24} />
+          </div>
+          <h2 className="modal__confirm-title">{t('modals.reportSentTitle')}</h2>
+          <p className="modal__confirm-message">{t('modals.reportSentMessage')}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -67,7 +83,7 @@ export default function ReportModal({ targetId, targetType = 'post', onClose }) 
           </div>
 
           <Button type="submit" fullWidth disabled={!selectedReason || submitting}>
-            {t('modals.reportSubmit')}
+            {submitting ? '…' : t('modals.reportSubmit')}
           </Button>
         </form>
       </div>

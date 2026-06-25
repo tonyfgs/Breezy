@@ -63,6 +63,19 @@ export async function getPostCommentsApi(postId, page = 1, limit = 20) {
   return (data.data ?? []).map(p => normalizePost(p, userMap.get(p.authorId) ?? null));
 }
 
+export function updatePostApi(postId, data) {
+  return apiClient(`/posts/${postId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deletePostApi(postId) {
+  return apiClient(`/posts/${postId}`, {
+    method: 'DELETE',
+  });
+}
+
 export function likePostApi(postId, userId) {
   return apiClient(`/posts/${postId}/likes`, {
     method: 'POST',

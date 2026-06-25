@@ -9,6 +9,7 @@
     "test": "pnpm -r run test",
     "test:coverage": "pnpm -r run test:coverage",
     "lint": "pnpm -r run lint",
-    "lint:fix": "pnpm -r run lint:fix"
+    "lint:fix": "pnpm -r run lint:fix",
+    "seed": "bash scripts/seed.sh"
   }
 }

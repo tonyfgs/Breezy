@@ -1,16 +1,18 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Heart, MessageCircle, Flag } from 'lucide-react';
+import { ChevronLeft, Heart, MessageCircle, Flag, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import AppLayout from '../../../components/layout/AppLayout';
 import Avatar from '../../../components/ui/Avatar';
 import CommentCard from '../../../components/post/CommentCard';
 import CommentModal from '../../../components/modals/CommentModal';
 import ReportModal from '../../../components/modals/ReportModal';
+import EditPostModal from '../../../components/modals/EditPostModal';
+import ConfirmModal from '../../../components/modals/ConfirmModal';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAuth } from '../../../context/AuthContext';
-import { getPostApi, getPostCommentsApi, likePostApi, unlikePostApi, getLikeStatusApi } from '../../../lib/api/posts.api';
+import { getPostApi, getPostCommentsApi, likePostApi, unlikePostApi, getLikeStatusApi, deletePostApi } from '../../../lib/api/posts.api';
 
 export default function PostDetailPage({ params }) {
   const { id } = use(params);
@@ -26,6 +28,12 @@ export default function PostDetailPage({ params }) {
   const [likeCount, setLikeCount] = useState(0);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [postContent, setPostContent] = useState(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -34,6 +42,7 @@ export default function PostDetailPage({ params }) {
     ])
       .then(([postData, commentsData]) => {
         setPost(postData);
+        setPostContent(postData.txt_content);
         setLikeCount(postData.nb_likesCount);
         setComments(commentsData);
         if (postData.sk_parentPostId) {
@@ -50,6 +59,31 @@ export default function PostDetailPage({ params }) {
       .then(setLiked)
       .catch(console.error);
   }, [id, user]);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
+
+  function handleDelete() {
+    setShowMenu(false);
+    setShowDeleteModal(true);
+  }
+
+  async function confirmDelete() {
+    setDeleting(true);
+    try {
+      await deletePostApi(post.sk_id);
+      router.back();
+    } catch {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  }
 
   async function handleLike() {
     if (!user || !post) return;
@@ -111,9 +145,40 @@ export default function PostDetailPage({ params }) {
             <div className="post-detail__post-meta">
               <span className="post-detail__post-name">@{post.author.nm_username}</span>
             </div>
+            {user?.profileId === post.sk_authorId ? (
+              <div className="post-card__menu-wrapper" ref={menuRef}>
+                <button
+                  className="post-card__menu-btn"
+                  aria-label={t('common.moreOptions')}
+                  onClick={() => setShowMenu(v => !v)}
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+                {showMenu && (
+                  <div className="post-card__dropdown">
+                    <button className="post-card__dropdown-item" onClick={() => { setShowMenu(false); setShowEditModal(true); }}>
+                      <Pencil size={14} />
+                      {t('common.edit')}
+                    </button>
+                    <button className="post-card__dropdown-item post-card__dropdown-item--danger" onClick={handleDelete}>
+                      <Trash2 size={14} />
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                className="post-detail__flag-btn"
+                onClick={() => setShowReportModal(true)}
+                aria-label={t('common.report')}
+              >
+                <Flag size={18} />
+              </button>
+            )}
           </div>
 
-          <p className="post-detail__post-body">{post.txt_content}</p>
+          <p className="post-detail__post-body">{postContent ?? post.txt_content}</p>
 
           <span className="post-detail__timestamp">{formattedDate}</span>
 
@@ -144,13 +209,6 @@ export default function PostDetailPage({ params }) {
               <MessageCircle size={18} />
               <span>{t('common.reply')}</span>
             </button>
-            <button
-              className="post-detail__flag-btn"
-              onClick={() => setShowReportModal(true)}
-              aria-label={t('common.report')}
-            >
-              <Flag size={18} />
-            </button>
           </div>
         </div>
 
@@ -174,6 +232,23 @@ export default function PostDetailPage({ params }) {
       )}
       {showReportModal && (
         <ReportModal targetId={post.sk_id} targetType="post" onClose={() => setShowReportModal(false)} />
+      )}
+      {showEditModal && (
+        <EditPostModal
+          post={{ ...post, txt_content: postContent ?? post.txt_content }}
+          onClose={() => setShowEditModal(false)}
+          onUpdated={newContent => setPostContent(newContent)}
+        />
+      )}
+      {showDeleteModal && (
+        <ConfirmModal
+          title={t('modals.deletePostTitle')}
+          message={t('modals.deletePostMessage')}
+          confirmLabel={t('common.delete')}
+          onConfirm={confirmDelete}
+          onClose={() => setShowDeleteModal(false)}
+          loading={deleting}
+        />
       )}
     </>
   );

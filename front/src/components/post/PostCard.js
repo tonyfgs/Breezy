@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, MessageCircle, Flag } from 'lucide-react';
+import { Heart, MessageCircle, Flag, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import CommentModal from '../modals/CommentModal';
 import ReportModal from '../modals/ReportModal';
+import EditPostModal from '../modals/EditPostModal';
+import ConfirmModal from '../modals/ConfirmModal';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import { likePostApi, unlikePostApi } from '../../lib/api/posts.api';
+import { likePostApi, unlikePostApi, deletePostApi } from '../../lib/api/posts.api';
 
 function formatRelativeTime(isoString) {
   const diffSeconds = (Date.now() - new Date(isoString).getTime()) / 1000;
@@ -17,15 +19,34 @@ function formatRelativeTime(isoString) {
   return `${Math.floor(diffSeconds / 86400)} j`;
 }
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, onDeleted }) {
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const menuRef = useRef(null);
+
   const [liked, setLiked] = useState(post.fl_liked ?? false);
   const [likeCount, setLikeCount] = useState(post.nb_likesCount ?? 0);
   const [commentCount, setCommentCount] = useState(post.nb_commentsCount ?? 0);
+  const [content, setContent] = useState(post.txt_content);
+  const [deleted, setDeleted] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const isOwner = user?.profileId === post.sk_authorId;
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   async function handleLike(e) {
     e.stopPropagation();
@@ -38,7 +59,6 @@ export default function PostCard({ post }) {
       else await unlikePostApi(post.sk_id, user.profileId);
     } catch (err) {
       if (err?.status === 409) {
-        // Déjà liké en base — on corrige l'état local
         setLiked(true);
         setLikeCount(prev => prev - 1);
       } else {
@@ -48,10 +68,36 @@ export default function PostCard({ post }) {
     }
   }
 
+  function handleDelete(e) {
+    e.stopPropagation();
+    setShowMenu(false);
+    setShowDeleteModal(true);
+  }
+
+  async function confirmDelete() {
+    setDeleting(true);
+    try {
+      await deletePostApi(post.sk_id);
+      setDeleted(true);
+      onDeleted?.();
+    } catch {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  }
+
+  function handleEdit(e) {
+    e.stopPropagation();
+    setShowMenu(false);
+    setShowEditModal(true);
+  }
+
   function handleComment(e) {
     e.stopPropagation();
     setShowCommentModal(true);
   }
+
+  if (deleted) return null;
 
   return (
     <>
@@ -68,12 +114,37 @@ export default function PostCard({ post }) {
               <span className="post-card__subline">{formatRelativeTime(post.ts_createdAt)}</span>
             </div>
           </button>
-          <button className="post-card__flag-btn" aria-label={t('common.report')} onClick={e => { e.stopPropagation(); setShowReportModal(true); }}>
-            <Flag size={14} />
-          </button>
+
+          {isOwner ? (
+            <div className="post-card__menu-wrapper" ref={menuRef}>
+              <button
+                className="post-card__menu-btn"
+                aria-label={t('common.moreOptions')}
+                onClick={e => { e.stopPropagation(); setShowMenu(v => !v); }}
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              {showMenu && (
+                <div className="post-card__dropdown" onClick={e => e.stopPropagation()}>
+                  <button className="post-card__dropdown-item" onClick={handleEdit}>
+                    <Pencil size={14} />
+                    {t('common.edit')}
+                  </button>
+                  <button className="post-card__dropdown-item post-card__dropdown-item--danger" onClick={handleDelete}>
+                    <Trash2 size={14} />
+                    {t('common.delete')}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button className="post-card__flag-btn" aria-label={t('common.report')} onClick={e => { e.stopPropagation(); setShowReportModal(true); }}>
+              <Flag size={14} />
+            </button>
+          )}
         </div>
 
-        <p className="post-card__body">{post.txt_content}</p>
+        <p className="post-card__body">{content}</p>
 
         <div className="post-card__actions">
           <button
@@ -101,6 +172,23 @@ export default function PostCard({ post }) {
       )}
       {showReportModal && (
         <ReportModal targetId={post.sk_id} targetType="post" onClose={() => setShowReportModal(false)} />
+      )}
+      {showEditModal && (
+        <EditPostModal
+          post={{ ...post, txt_content: content }}
+          onClose={() => setShowEditModal(false)}
+          onUpdated={newContent => setContent(newContent)}
+        />
+      )}
+      {showDeleteModal && (
+        <ConfirmModal
+          title={t('modals.deletePostTitle')}
+          message={t('modals.deletePostMessage')}
+          confirmLabel={t('common.delete')}
+          onConfirm={confirmDelete}
+          onClose={() => setShowDeleteModal(false)}
+          loading={deleting}
+        />
       )}
     </>
   );
